@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
 
-const logSchema = new mongoose.Schema({
-  prescriptionId: { type: mongoose.Schema.Types.ObjectId, ref: "Prescription", required: true },
-  scannedBy: { type: String, required: true }, // pharmacy name or ID
+const LogSchema = new mongoose.Schema({
+  prescriptionId: { type: mongoose.Schema.Types.ObjectId, ref: "Prescription" },
   scannedAt: { type: Date, default: Date.now },
-  status: { type: String, enum: ["success", "rejected"], required: true },
-  reason: { type: String } // if rejected, why
+  scannerIp: { type: String },
 });
 
-module.exports = mongoose.model("Log", logSchema);
+module.exports = mongoose.model("Log", LogSchema);
