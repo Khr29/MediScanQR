@@ -1,12 +1,13 @@
 const QRCode = require("qrcode");
 
-// generate a QR code from text (like prescription ID or URL)
-const generateQR = async (text) => {
+// Generate QR code
+const generateQR = async (data) => {
   try {
-    const qrDataURL = await QRCode.toDataURL(text);
-    return qrDataURL;
+    // Creates QR Code as a string (base64 image)
+    const qrCode = await QRCode.toDataURL(data);
+    return qrCode;
   } catch (err) {
-    console.error("QR generation error:", err);
+    console.error("QR Code generation failed:", err);
     throw err;
   }
 };
