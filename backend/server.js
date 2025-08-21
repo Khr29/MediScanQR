@@ -1,20 +1,26 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
-const prescriptionRoutes = require("./src/routes/prescriptionRoutes");
-const { errorHandler } = require("./src/middleware/errorMiddleware");
 
+// Load environment variables
 dotenv.config();
+
+// Connect to MongoDB
 connectDB();
 
+// Create Express app
 const app = express();
-app.use(express.json()); // parse JSON
 
-// Routes
-app.use("/api/prescriptions", prescriptionRoutes);
+// Middleware to parse JSON
+app.use(express.json());
 
-// Error Middleware
-app.use(errorHandler);
+// Simple test route
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
