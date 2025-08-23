@@ -8,7 +8,7 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
-// Create Express app
+//  Create Express app
 const app = express();
 
 // Middleware to parse JSON
