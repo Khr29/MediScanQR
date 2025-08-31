@@ -8,11 +8,19 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
-//  Create Express app
+// Create Express app
 const app = express();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Import routes
+const scanRoutes = require("./src/routes/scanRoutes");
+const userRoutes = require("./src/routes/userRoutes");
+
+// Use routes
+app.use("/api/scan", scanRoutes);
+app.use("/api/users", userRoutes);
 
 // Simple test route
 app.get("/", (req, res) => {
