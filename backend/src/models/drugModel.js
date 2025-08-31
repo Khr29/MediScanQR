@@ -1,13 +1,27 @@
 const mongoose = require("mongoose");
 
-const drugSchema = new mongoose.Schema(
+const drugSchema = mongoose.Schema(
   {
-    name: { type: String, required: true },         // drug name
-    description: { type: String },                  // details about the drug
-    manufacturer: { type: String },                 // company that makes it
-    stock: { type: Number, default: 0 },            // how many units available
+    name: {
+      type: String,
+      required: [true, "Please add a drug name"],
+    },
+    manufacturer: {
+      type: String,
+      required: [true, "Please add a manufacturer"],
+    },
+    description: {
+      type: String,
+      required: [true, "Please add a description"],
+    },
+    price: {
+      type: Number,
+      required: [true, "Please add a price"],
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Drug", drugSchema);

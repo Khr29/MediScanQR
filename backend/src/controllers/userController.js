@@ -34,10 +34,26 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log("Login attempt for email:", email);
+  console.log("Password received:", password);
+
   try {
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
+    // Check if a user with that email exists
+    if (!user) {
+      console.log("User not found in database.");
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    console.log("User found:", user.email);
+    console.log(
+      "Comparing entered password with hashed password in database..."
+    );
+
+    // Compare the entered password with the hashed password
+    if (await user.matchPassword(password)) {
+      console.log("Password matched successfully!");
       res.json({
         _id: user.id,
         name: user.name,
@@ -46,9 +62,11 @@ const loginUser = async (req, res) => {
         token: generateToken(user.id),
       });
     } else {
+      console.log("Password did NOT match.");
       res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
+    console.error("An error occurred during login:", error);
     res.status(500).json({ message: error.message });
   }
 };

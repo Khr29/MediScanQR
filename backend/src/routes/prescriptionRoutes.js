@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   createPrescription,
   getPrescriptions,
-  getPrescriptionById,
+  getPrescription,
 } = require("../controllers/prescriptionController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -14,6 +14,6 @@ router.post("/", protect, createPrescription);
 router.get("/", protect, getPrescriptions);
 
 // GET /api/prescriptions/:id → get a single prescription by ID
-router.get("/:id", protect, getPrescriptionById);
+router.get("/:id", protect, getPrescription);
 
 module.exports = router;
