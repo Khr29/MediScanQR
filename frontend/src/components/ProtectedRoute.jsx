@@ -1,30 +1,30 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children, roles }) => {
-  const { isAuthenticated, user, loading } = useAuth();
-  const location = useLocation();
+/**
+ * A wrapper component that checks for user authentication and role authorization.
+ * If not authenticated, it redirects to the Login page.
+ */
+const ProtectedRoute = ({ children, roles = [] }) => {
+  // 1. Check Authentication Status from localStorage
+  // The 'user' item holds the logged-in user's data (including the token/role).
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : null;
 
-  if (loading) {
-    // Return null or a simple loading indicator while authentication status is being checked
-    return null; 
+  // 2. Protection Check: Redirect if no user is found
+  if (!user) {
+    // This line forces the app to render the LoginPage component
+    return <Navigate to="/login" replace />; 
   }
 
-  // 1. Check Authentication
-  if (!isAuthenticated) {
-    // Not authenticated, redirect to login, preserving current location for post-login redirect
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  // 2. Check Role Authorization (if roles are specified)
-  if (roles && user && !roles.includes(user.role)) {
-    // Authenticated but wrong role, redirect to dashboard or a 403 page
-    alert(`Access Denied. You must be one of the following roles: ${roles.join(', ')}`);
+  // 3. Authorization Check: Check if the user's role is permitted
+  // The user role is stored as 'user.role'.
+  if (roles.length > 0 && !roles.includes(user.role)) {
+    // Redirect to the home page or a 403 Forbidden page on role mismatch
     return <Navigate to="/" replace />; 
   }
 
-  // Authenticated and authorized
+  // 4. Authorized: Render the children (e.g., DashboardPage)
   return children;
 };
 
