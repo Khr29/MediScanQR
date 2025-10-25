@@ -1,29 +1,37 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "keywords": [],
-  "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "express-async-handler": "^1.2.0",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.19.2",
-    "morgan": "^1.10.1",
-    "nodemailer": "^7.0.10",
-    "qrcode": "^1.5.4",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
-  }
+"name": "backend",
+"version": "1.0.0",
+"description": "",
+"main": "server.js",
+"scripts": {
+"start": "node server.js",
+"server": "nodemon server.js"
+},
+"author": "",
+"license": "ISC",
+"keywords": [],
+"dependencies": {
+"bcryptjs": "^3.0.2",
+"compression": "^1.8.1",
+"cors": "^2.8.5",
+"dotenv": "^17.2.3",
+"express": "^5.1.0",
+"express-async-handler": "^1.2.0",
+"express-mongo-sanitize": "^2.2.0",
+"express-rate-limit": "^8.1.0",
+"express-validator": "^7.3.0",
+"helmet": "^8.1.0",
+"hpp": "^0.2.3",
+"jsonwebtoken": "^9.0.2",
+"mongoose": "^8.19.2",
+"morgan": "^1.10.1",
+"nodemailer": "^7.0.10",
+"qrcode": "^1.5.4",
+"uuid": "^11.1.0",
+"winston": "^3.18.3",
+"xss-clean": "^0.1.4"
+},
+"devDependencies": {
+"nodemon": "^3.1.10"
+}
 }

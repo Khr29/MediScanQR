@@ -1,48 +1,54 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
-// Protect routes (require login)
-const protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization) {
-    try {
-      // If header starts with "Bearer <token>"
-      if (req.headers.authorization.startsWith("Bearer ")) {
-        token = req.headers.authorization.split(" ")[1];
-      } else {
-        // If header is just the token
-        token = req.headers.authorization;
-      }
-
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Attach user to request (without password)
-      req.user = await User.findById(decoded.id).select("-password");
-
-      if (!req.user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: "Not authorized, token failed" });
-    }
-  } else {
-    return res.status(401).json({ message: "Not authorized, no token" });
-  }
+const throwAuthError = (message, statusCode = 401) => {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    throw error;
 };
 
-// Role-based authorization
+// @desc    Protect routes (require valid JWT)
+const protect = async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+        try {
+            // Extract token
+            token = req.headers.authorization.split(" ")[1];
+
+            // Verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            
+            // Attach user to request (without password and version key)
+            // CRITICAL NOTE: This DB query runs on EVERY protected request. See recommendations for optimization.
+            req.user = await User.findById(decoded.id).select("-password -__v");
+
+            if (!req.user) {
+                throwAuthError("Not authorized, user not found.");
+            }
+
+            next();
+        } catch (error) {
+            console.error(`[Auth Middleware] Token Verification Failed: ${error.message}`);
+            // Force 401 Unauthorized for all token failures (security)
+            throwAuthError("Not authorized, token failed.", 401); 
+        }
+    } else {
+        throwAuthError("Not authorized, no token provided.", 401);
+    }
+};
+
+// @desc    Role-based authorization (e.g., authorize('doctor', 'admin'))
 const authorize = (...roles) => (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  if (!roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "Not authorized for this action" });
-  }
-  next();
+    if (!req.user || !req.user.role) {
+        throwAuthError("Authentication required for role check.", 401);
+    }
+    
+    if (!roles.includes(req.user.role)) {
+        throwAuthError("Forbidden: You do not have the necessary permissions for this action.", 403);
+    }
+    
+    next();
 };
 
 module.exports = { protect, authorize };

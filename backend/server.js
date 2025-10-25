@@ -1,14 +1,36 @@
+// server.js
+
+// --- Core Imports ---
 const express = require("express");
 const dotenv = require("dotenv");
-const connectDB = require("./src/config/db");
-const { notFound, errorHandler } = require("./src/middleware/errorMiddleware");
+const path = require("path"); // ⬅️ CRITICAL: Must be imported to use path.join
 
-// Import routes
-const userRoutes = require("./src/routes/userRoutes");
-const drugRoutes = require("./src/routes/drugRoutes");
-const prescriptionRoutes = require("./src/routes/prescriptionRoutes");
+// --- Security & Logging Imports ---
+const morgan = require("morgan");
+const helmet = require("helmet");
+const cors = require("cors");
 
-dotenv.config();
+// --- Config & Middleware Imports ---
+// ✅ FIX: Using path.join(__dirname, ...) for absolute path reliability
+const connectDB = require(path.join(__dirname, "src/config", "db.js"));
+const { notFound, errorHandler } = require(path.join(
+  __dirname,
+  "src/middleware",
+  "errorMiddleware.js"
+));
+
+// --- Route Imports ---
+// ✅ FIX: Using path.join(__dirname, ...) for absolute path reliability
+const userRoutes = require(path.join(__dirname, "src/routes", "userRoutes.js"));
+const drugRoutes = require(path.join(__dirname, "src/routes", "drugRoutes.js"));
+const prescriptionRoutes = require(path.join(
+  __dirname,
+  "src/routes",
+  "prescriptionRoutes.js"
+));
+
+// Load Environment Variables
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 // Connect MongoDB
 connectDB();
@@ -16,27 +38,51 @@ connectDB();
 // Initialize Express
 const app = express();
 
-// Middleware to parse JSON
-app.use(express.json());
+// --- 1. SECURITY & LOGGING MIDDLEWARE ---
+app.use(helmet());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://yourproductionfrontend.com"
+        : "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  })
+);
 
-// Routes
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined"));
+}
+
+// --- 2. BODY PARSERS ---
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// --- 3. CORE ROUTES ---
 app.get("/", (req, res) => {
-  res.send("🚀 MediScanQR API is running...");
+  res.json({
+    message: "🚀 MediScanQR API is running...",
+    status: "Online",
+    environment: process.env.NODE_ENV,
+    version: "v1",
+  });
 });
 
-app.use("/api/users", userRoutes);
-app.use("/api/drugs", drugRoutes);
-app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/drugs", drugRoutes);
+app.use("/api/v1/prescriptions", prescriptionRoutes);
 
-// Error Handling Middleware
+// --- 4. ERROR HANDLING MIDDLEWARE (MUST BE LAST) ---
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
+// --- 5. START SERVER ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(
-    `✅ Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
+    `✅ Server Running in ${process.env.NODE_ENV} mode on port ${PORT}`
   );
 });
-

@@ -1,71 +1,87 @@
+// controllers/prescriptionController.js
+
 const asyncHandler = require("express-async-handler");
-const Prescription = require("../models/prescriptionModel");
-const User = require("../models/userModel");
+const mongoose = require("mongoose");
+const Prescription = require("../models/prescriptionModel"); 
+const generateQR = require('../utils/qrGenerator'); 
+// const verifyQR = require('../utils/qrVerifier'); // Assuming this is not needed in the controller, but leaving it commented for context
 
-// @desc    Create new prescription
-// @route   POST /api/prescriptions
-// @access  Private (Doctor only)
+// @desc    Create new prescription (Doctor only)
+// @route   POST /api/v1/prescriptions
 const createPrescription = asyncHandler(async (req, res) => {
-  const { patientName, medication, dosage, instructions } = req.body;
+    const { patientName, medication, instructions } = req.body; 
 
-  // Check if all fields are filled
-  if (!patientName || !medication || !dosage || !instructions) {
-    res.status(400);
-    throw new Error("Please fill in all fields");
-  }
+    if (!patientName || !medication || !instructions || !Array.isArray(medication) || medication.length === 0) {
+        const error = new Error("Please provide patientName, non-empty medication array (with drug IDs), and instructions.");
+        error.statusCode = 400; 
+        throw error;
+    }
 
-  // Get the doctor's ID from the authenticated user
-  const doctor = await User.findById(req.user.id);
+    // --- FIX APPLIED HERE ---
+    // 1. Create the prescription document WITHOUT the QR code initially.
+    // The prescription object now receives its unique _id.
+    let prescription = await Prescription.create({
+        doctor: req.user.id,
+        patientName,
+        medication, 
+        instructions,
+        qrCode: "", // Temporary placeholder
+    });
+    
+    // 2. Generate the QR code using the newly created document's ID
+    const qrCodeDataUrl = await generateQR(prescription._id.toString());
+    
+    // 3. Update the prescription document with the generated QR code
+    prescription = await Prescription.findByIdAndUpdate(
+        prescription._id, 
+        { qrCode: qrCodeDataUrl },
+        { new: true } // Return the updated document
+    ).populate('medication.drug', 'name manufacturer price'); // Populate the drugs for the response
 
-  // Check if the authenticated user is a doctor
-  if (doctor.role !== "doctor") {
-    res.status(403);
-    throw new Error("Only doctors can create prescriptions");
-  }
-
-  // Create the new prescription
-  const prescription = await Prescription.create({
-    doctor: req.user.id,
-    patientName,
-    medication,
-    dosage,
-    instructions,
-  });
-
-  res.status(201).json(prescription);
+    res.status(201).json({
+        message: "Prescription created successfully.",
+        data: prescription,
+    });
 });
 
-// @desc    Get all prescriptions for the logged-in doctor
-// @route   GET /api/prescriptions
-// @access  Private (Doctor only)
+// @desc    Get all prescriptions for the logged-in doctor
+// @route   GET /api/v1/prescriptions
 const getPrescriptions = asyncHandler(async (req, res) => {
-  // Find all prescriptions where the 'doctor' field matches the ID of the logged-in user
-  const prescriptions = await Prescription.find({ doctor: req.user.id });
-  res.status(200).json(prescriptions);
+    // Only fetch prescriptions created by the logged-in doctor
+    const prescriptions = await Prescription.find({ doctor: req.user.id })
+        .sort({ createdAt: -1 })
+        .select('-__v')
+        .populate('medication.drug', 'name manufacturer price'); 
+    
+    res.status(200).json({
+        count: prescriptions.length,
+        data: prescriptions,
+    });
 });
 
-// @desc    Get a single prescription by ID
-// @route   GET /api/prescriptions/:id
-// @access  Private
+// @desc    Get a single prescription by ID
+// @route   GET /api/v1/prescriptions/:id
 const getPrescription = asyncHandler(async (req, res) => {
-  const prescription = await Prescription.findById(req.params.id);
+    const prescriptionId = req.params.id;
 
-  if (!prescription) {
-    res.status(404);
-    throw new Error("Prescription not found");
-  }
+    // Fetch and ensure the prescription belongs to the logged-in doctor
+    const prescription = await Prescription.findOne({
+        _id: prescriptionId,
+        doctor: req.user.id, 
+    }).select('-__v')
+      .populate('medication.drug', 'name manufacturer price'); 
 
-  // Check that the found prescription belongs to the logged-in doctor
-  if (prescription.doctor.toString() !== req.user.id) {
-    res.status(401);
-    throw new Error("Not authorized to view this prescription");
-  }
+    if (!prescription) {
+        const error = new Error("Prescription not found or access denied.");
+        error.statusCode = 404; 
+        throw error;
+    }
 
-  res.status(200).json(prescription);
+    res.status(200).json(prescription);
 });
 
 module.exports = {
-  createPrescription,
-  getPrescriptions,
-  getPrescription,
+    createPrescription,
+    getPrescriptions,
+    getPrescription,
 };

@@ -1,25 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const {
-  addDrug,
-  getAllDrugs,
-  getDrugById,
+    addDrug,
+    getAllDrugs,
+    getDrugById,
 } = require("../controllers/drugController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middleware/authMiddleware"); 
 
-// @route   POST /api/drugs
-// @desc    Add a new drug
-// @access  Private (Doctor only)
-router.post("/", protect, addDrug);
+// --- /api/v1/drugs ---
+router.route("/")
+    // POST /api/v1/drugs (Doctor only)
+    .post(protect, authorize('doctor'), addDrug) 
+    // GET /api/v1/drugs (All authenticated users)
+    .get(protect, getAllDrugs);
 
-// @route   GET /api/drugs
-// @desc    Get all drugs
-// @access  Private (All authenticated users)
-router.get("/", protect, getAllDrugs);
-
-// @route   GET /api/drugs/:id
-// @desc    Get a single drug by ID
-// @access  Private (All authenticated users)
-router.get("/:id", protect, getDrugById);
+// --- /api/v1/drugs/:id ---
+router.route("/:id")
+    // GET /api/v1/drugs/:id (All authenticated users)
+    .get(protect, getDrugById);
 
 module.exports = router;

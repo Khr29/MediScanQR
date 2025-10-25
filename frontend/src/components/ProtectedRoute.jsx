@@ -1,31 +1,35 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 /**
  * A wrapper component that checks for user authentication and role authorization.
- * If not authenticated, it redirects to the Login page.
  */
 const ProtectedRoute = ({ children, roles = [] }) => {
-  // 1. Check Authentication Status from localStorage
-  // The 'user' item holds the logged-in user's data (including the token/role).
-  const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+    const { user, role, loading } = useAuth();
 
-  // 2. Protection Check: Redirect if no user is found
-  if (!user) {
-    // This line forces the app to render the LoginPage component
-    return <Navigate to="/login" replace />; 
-  }
+    if (loading) {
+        // Show a loading spinner while checking authentication status
+        return (
+            <div className="text-center py-20 text-gray-500">
+                <div className="animate-spin mx-auto h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+                Loading user session...
+            </div>
+        );
+    }
 
-  // 3. Authorization Check: Check if the user's role is permitted
-  // The user role is stored as 'user.role'.
-  if (roles.length > 0 && !roles.includes(user.role)) {
-    // Redirect to the home page or a 403 Forbidden page on role mismatch
-    return <Navigate to="/" replace />; 
-  }
+    // 1. Protection Check: If no user, redirect to login
+    if (!user) {
+        return <Navigate to="/login" replace />; 
+    }
 
-  // 4. Authorized: Render the children (e.g., DashboardPage)
-  return children;
+    // 2. Authorization Check: If role is required but doesn't match, redirect to home
+    if (roles.length > 0 && !roles.includes(role)) {
+        return <Navigate to="/" replace />; 
+    }
+
+    // 3. Authorized: Render the requested page
+    return children;
 };
 
 export default ProtectedRoute;

@@ -1,13 +1,43 @@
 const mongoose = require("mongoose");
 
+const ALLOWED_ACTIONS = [
+    "USER_REGISTER",
+    "USER_LOGIN",
+    "DRUG_CREATE",
+    "PRESCRIPTION_CREATE",
+    "PRESCRIPTION_VIEW",
+    // Add more as needed
+];
+
 const logSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    action: { type: String, required: true }, // e.g. "CREATE_PRESCRIPTION"
-    target: { type: String }, // optional: prescription ID, drug ID
-    details: { type: Object }, // flexible field for extra data
-  },
-  { timestamps: true }
+    {
+        user: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: "User", 
+            required: true, 
+            index: true,
+        },
+        action: { 
+            type: String, 
+            required: true,
+            enum: ALLOWED_ACTIONS, // Enforce data integrity
+            index: true,
+        }, 
+        target: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Any', 
+            default: null,
+        }, 
+        details: { 
+            type: Object, 
+            default: {},
+        }, 
+    },
+    { 
+        timestamps: true,
+        versionKey: false,
+        collection: 'logs',
+    }
 );
 
 module.exports = mongoose.model("Log", logSchema);
