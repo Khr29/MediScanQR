@@ -1,12 +1,9 @@
-// --- main.jsx Content ---
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-// If you used an index.css file, you would import it here:
-// import './index.css'; 
-
-// NOTE: This file assumes App.jsx is available in the same directory.
+// 🚨 This imports your main application logic
+import App from './PharmaManagerApp.jsx';
+// 🚨 This imports your Tailwind CSS styles
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
