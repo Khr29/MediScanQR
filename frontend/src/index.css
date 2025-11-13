@@ -1,15 +1,7 @@
-/*
-  This file imports the base directives for Tailwind CSS
-*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Optional: Set a clean default font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f7f9fc; 
-}
+body { font-family: "Inter", sans-serif; background: #f7f9fc; }

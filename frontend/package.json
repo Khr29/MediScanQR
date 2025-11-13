@@ -1,32 +1,22 @@
 {
-  "name": "pharma-manager",
+  "name": "mediscanqr-frontend",
+  "private": true,
   "version": "1.0.0",
-  "description": "Inventory management application built with React and Firebase.",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
-  "keywords": [
-    "react",
-    "vite",
-    "firebase"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "firebase": "^12.4.0",
-    "lucide-react": "^0.548.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.16",
-    "vite": "^5.3.1"
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.2.8"
   }
 }
