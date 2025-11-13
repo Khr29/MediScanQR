@@ -1,14 +1,20 @@
-// controllers/prescriptionController.js
-
 const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
 const Prescription = require("../models/prescriptionModel"); 
 const generateQR = require('../utils/qrGenerator'); 
-// const verifyQR = require('../utils/qrVerifier'); // Assuming this is not needed in the controller, but leaving it commented for context
 
 // @desc    Create new prescription (Doctor only)
 // @route   POST /api/v1/prescriptions
 const createPrescription = asyncHandler(async (req, res) => {
+    // === DEFENSIVE AUTH CHECK (Added for clearer error messages) ===
+    if (!req.user || !req.user.id) {
+        const error = new Error("Authentication token failed verification. Doctor ID is missing.");
+        // Throw a 401 error instead of letting the 500 error occur later
+        error.statusCode = 401; 
+        throw error;
+    }
+    // =============================================================
+
     const { patientName, medication, instructions } = req.body; 
 
     if (!patientName || !medication || !instructions || !Array.isArray(medication) || medication.length === 0) {
@@ -17,11 +23,9 @@ const createPrescription = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    // --- FIX APPLIED HERE ---
     // 1. Create the prescription document WITHOUT the QR code initially.
-    // The prescription object now receives its unique _id.
     let prescription = await Prescription.create({
-        doctor: req.user.id,
+        doctor: req.user.id, // This line is now protected by the check above
         patientName,
         medication, 
         instructions,
@@ -44,9 +48,17 @@ const createPrescription = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Get all prescriptions for the logged-in doctor
-// @route   GET /api/v1/prescriptions
+// @desc    Get all prescriptions for the logged-in doctor
+// @route   GET /api/v1/prescriptions
 const getPrescriptions = asyncHandler(async (req, res) => {
+    // === DEFENSIVE AUTH CHECK (Added for clearer error messages) ===
+    if (!req.user || !req.user.id) {
+        const error = new Error("Authentication token failed verification. Doctor ID is missing.");
+        error.statusCode = 401; 
+        throw error;
+    }
+    // =============================================================
+    
     // Only fetch prescriptions created by the logged-in doctor
     const prescriptions = await Prescription.find({ doctor: req.user.id })
         .sort({ createdAt: -1 })
@@ -59,9 +71,17 @@ const getPrescriptions = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Get a single prescription by ID
-// @route   GET /api/v1/prescriptions/:id
+// @desc    Get a single prescription by ID
+// @route   GET /api/v1/prescriptions/:id
 const getPrescription = asyncHandler(async (req, res) => {
+    // === DEFENSIVE AUTH CHECK (Added for clearer error messages) ===
+    if (!req.user || !req.user.id) {
+        const error = new Error("Authentication token failed verification. Doctor ID is missing.");
+        error.statusCode = 401; 
+        throw error;
+    }
+    // =============================================================
+    
     const prescriptionId = req.params.id;
 
     // Fetch and ensure the prescription belongs to the logged-in doctor
@@ -80,8 +100,55 @@ const getPrescription = asyncHandler(async (req, res) => {
     res.status(200).json(prescription);
 });
 
+// @desc    Mark a prescription as dispensed/fulfilled (Pharmacist/Authorized User only)
+// @route   POST /api/v1/prescriptions/:id/dispense
+const dispensePrescription = asyncHandler(async (req, res) => {
+    const prescriptionId = req.params.id;
+
+    // 1. Defensive Auth Check (Assuming Pharmacist/Authorized User role is handled by middleware)
+    if (!req.user || !req.user.id) {
+        const error = new Error("Authentication token failed verification. Only authorized users (e.g., Pharmacists) can dispense prescriptions.");
+        error.statusCode = 401; 
+        throw error;
+    }
+
+    // 2. Find and Validate Prescription
+    const prescription = await Prescription.findById(prescriptionId);
+
+    if (!prescription) {
+        const error = new Error(`Prescription with ID ${prescriptionId} not found.`);
+        error.statusCode = 404; 
+        throw error;
+    }
+    
+    // 3. Check if already dispensed
+    if (prescription.dispensed) {
+        const error = new Error("This prescription has already been dispensed.");
+        error.statusCode = 400; // Bad Request
+        throw error;
+    }
+    
+    // 4. Update the prescription status and dispense details
+    const dispensedPrescription = await Prescription.findByIdAndUpdate(
+        prescriptionId,
+        {
+            dispensed: true,
+            dispensedAt: Date.now(),
+            status: 'fulfilled' // Change status to fulfilled
+        },
+        { new: true } // Return the updated document
+    ).populate('medication.drug', 'name manufacturer price');
+
+    res.status(200).json({
+        message: "Prescription successfully dispensed and fulfilled.",
+        data: dispensedPrescription,
+    });
+});
+
+
 module.exports = {
     createPrescription,
     getPrescriptions,
     getPrescription,
+    dispensePrescription, // <<< NEWLY EXPORTED FUNCTION
 };
