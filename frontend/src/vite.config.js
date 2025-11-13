@@ -6,12 +6,13 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    allowedHosts: ["runtgenographically-ependymal-josefine.ngrok-free.dev"],
     proxy: {
       "/api": {
         target: "http://localhost:5000",
         changeOrigin: true,
-        secure: false 
-      }
-    }
-  }
+        secure: false,
+      },
+    },
+  },
 });

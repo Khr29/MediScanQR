@@ -19,6 +19,7 @@ const MOCK_DRUG_DATABASE = [
 const DrugSelector = ({ selectedId, onSelect }) => {
     const [searchTerm, setSearchTerm] = useState(selectedId ? MOCK_DRUG_DATABASE.find(d => d.id === selectedId)?.name : "");
     const [isSearching, setIsSearching] = useState(false);
+    const wrapperRef = useRef(null);
 
     // Filter drugs based on search term
     const filteredDrugs = MOCK_DRUG_DATABASE.filter(drug => 
@@ -30,29 +31,54 @@ const DrugSelector = ({ selectedId, onSelect }) => {
         onSelect(drug.id, drug.name);
         setIsSearching(false);
     };
+    
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+                setIsSearching(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [wrapperRef]);
+
 
     return (
-        <div className="relative flex-1">
+        <div className="relative flex-1" ref={wrapperRef}>
             <input
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Search for Drug Name (e.g., Paracetamol)"
                 value={searchTerm}
                 onFocus={() => setIsSearching(true)}
                 onChange={e => {
-                    setSearchTerm(e.target.value);
-                    // Clear the selected ID if the user starts typing
-                    if (e.target.value.toLowerCase() !== MOCK_DRUG_DATABASE.find(d => d.id === selectedId)?.name.toLowerCase()) {
+                    const newTerm = e.target.value;
+                    setSearchTerm(newTerm);
+                    // Clear the selected ID if the user starts typing something that doesn't match the current selection
+                    const currentlySelectedName = MOCK_DRUG_DATABASE.find(d => d.id === selectedId)?.name;
+                    if (currentlySelectedName && newTerm.toLowerCase() !== currentlySelectedName.toLowerCase()) {
+                         onSelect("", "");
+                    } else if (!currentlySelectedName && newTerm.length > 0) {
                          onSelect("", "");
                     }
                 }}
+                onBlur={() => {
+                    // This blur handles closing, but we use the useEffect hook for external clicks
+                    // For better UX, let's keep the focus/blur management simple here
+                }}
             />
             {isSearching && filteredDrugs.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b-md max-h-48 overflow-y-auto shadow-lg">
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b-md max-h-48 overflow-y-auto shadow-lg top-full mt-1">
                     {filteredDrugs.slice(0, 5).map(drug => (
                         <div
                             key={drug.id}
                             className="p-2 hover:bg-indigo-100 cursor-pointer text-sm"
-                            onClick={() => handleSelect(drug)}
+                            onMouseDown={(e) => { // Use onMouseDown to prevent blur event from firing before click
+                                e.preventDefault();
+                                handleSelect(drug);
+                            }}
                         >
                             {drug.name}
                         </div>
@@ -123,6 +149,8 @@ function DoctorTab() {
     async function createPrescription() {
         setLoading(true);
         setMsg(null);
+        setQrDataUrl(null);
+        setToken(null);
         
         // Improved validation: checking for valid name and valid drug IDs
         if (!patientName || patientName.trim() === "") {
@@ -180,64 +208,76 @@ function DoctorTab() {
 
     return (
         <div>
-            <h2 className="text-xl font-semibold mb-3">Doctor — Create Prescription</h2>
+            <h2 className="text-xl font-semibold mb-5 text-indigo-700">Doctor — Create Prescription</h2>
 
-            <div className="mb-2">
-                <label className="block text-sm font-medium">Patient Name</label>
-                <input className="border p-2 rounded w-full" value={patientName} onChange={e => setPatientName(e.target.value)} />
+            <div className="mb-4 p-4 border rounded-lg bg-indigo-50/50">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Patient Name</label>
+                <input className="border p-2 rounded w-full focus:ring-indigo-500 focus:border-indigo-500" value={patientName} onChange={e => setPatientName(e.target.value)} />
             </div>
 
-            <div className="mb-3">
-                <label className="block text-sm font-medium">Medicines</label>
+            <div className="mb-5">
+                <label className="block text-lg font-medium text-gray-700 mb-3">Medicines</label>
                 {items.map((it, i) => (
-                    <div key={i} className="flex gap-2 items-start mb-4 p-2 bg-gray-50 rounded-lg border">
-                        {/* DrugSelector component */}
-                        <DrugSelector 
-                            selectedId={it.drug}
-                            onSelect={(id, name) => updateDrugSelection(i, id, name)}
-                        />
-
-                        <input placeholder="Dosage (e.g., 500mg twice daily)" value={it.dosage} onChange={e => updateItem(i, "dosage", e.target.value)} className="border p-2 rounded w-40" />
+                    <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-start mb-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
                         
-                        <input 
-                            placeholder="Quantity" 
-                            type="number" 
-                            value={it.quantity} 
-                            onChange={e => updateItem(i, "quantity", e.target.value)} 
-                            className="border p-2 rounded w-24 text-center" 
-                            min="1"
-                        />
-                        <button onClick={() => removeItem(i)} className="p-2 bg-red-100 rounded text-red-600 font-bold hover:bg-red-200 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-                        </button>
+                        <div className="w-full sm:w-auto sm:flex-1">
+                            <label className="block text-xs text-gray-500 mb-1">Drug</label>
+                            <DrugSelector 
+                                selectedId={it.drug}
+                                onSelect={(id, name) => updateDrugSelection(i, id, name)}
+                            />
+                        </div>
+
+                        <div className="w-full sm:w-auto">
+                            <label className="block text-xs text-gray-500 mb-1">Dosage</label>
+                            <input placeholder="e.g., 500mg twice daily" value={it.dosage} onChange={e => updateItem(i, "dosage", e.target.value)} className="border p-2 rounded w-full sm:w-40 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        
+                        <div className="w-1/2 sm:w-24">
+                            <label className="block text-xs text-gray-500 mb-1">Quantity</label>
+                            <input 
+                                placeholder="Qty" 
+                                type="number" 
+                                value={it.quantity} 
+                                onChange={e => updateItem(i, "quantity", e.target.value)} 
+                                className="border p-2 rounded w-full text-center focus:ring-indigo-500 focus:border-indigo-500" 
+                                min="1"
+                            />
+                        </div>
+                        <div className="w-1/2 sm:w-auto mt-6 sm:mt-0 pt-1 flex justify-end items-center">
+                            <button onClick={() => removeItem(i)} className="p-2 bg-red-100 rounded-full text-red-600 font-bold hover:bg-red-200 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                            </button>
+                        </div>
                     </div>
                 ))}
-                <button onClick={addItem} className="px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition duration-150 flex items-center gap-1">
+                <button onClick={addItem} className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition duration-150 flex items-center gap-1 text-sm font-medium shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add medicine
                 </button>
             </div>
             
-            <div className="mb-4">
-                <label className="block text-sm font-medium">Instructions</label>
-                <textarea className="border p-2 rounded w-full resize-none" rows="3" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="e.g., Take with food. Do not operate heavy machinery."></textarea>
+            <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
+                <textarea className="border p-2 rounded w-full resize-none focus:ring-indigo-500 focus:border-indigo-500" rows="3" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="e.g., Take with food. Do not operate heavy machinery."></textarea>
             </div>
 
 
             <div className="flex gap-2">
-                <button onClick={createPrescription} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition duration-150 shadow-md" disabled={loading}>
+                <button onClick={createPrescription} className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition duration-150 shadow-lg font-semibold" disabled={loading}>
                     {loading ? "Creating..." : "Create Prescription & QR"}
                 </button>
             </div>
 
-            {msg && <div className={`mt-3 text-sm font-semibold ${msg.startsWith("Error") ? 'text-red-600 bg-red-100 p-2 rounded' : 'text-green-600'}`}>{msg}</div>}
+            {msg && <div className={`mt-4 text-sm font-semibold p-3 rounded-xl ${msg.startsWith("Error") ? 'text-red-800 bg-red-100' : 'text-green-800 bg-green-100'}`}>{msg}</div>}
 
             {qrDataUrl && (
-                <div className="mt-4 bg-gray-100 p-4 rounded shadow-lg flex items-center gap-4">
-                    <img src={qrDataUrl} alt="QR Code" className="w-32 h-32 object-contain bg-white p-1 border rounded-md" />
+                <div className="mt-6 bg-gray-50 p-6 rounded-xl shadow-inner flex flex-col sm:flex-row items-center gap-6 border border-gray-200">
+                    <img src={qrDataUrl} alt="QR Code" className="w-36 h-36 object-contain bg-white p-2 border-4 border-indigo-500 rounded-lg shadow-md" />
                     <div>
-                        <div className="mb-2 text-sm text-gray-700 font-medium">Scan this code to verify the prescription details.</div>
-                        <div className="mb-2">Token (ID): <span className="font-mono text-indigo-700 font-semibold text-sm select-all">{token}</span></div>
-                        <a download={`${token}.png`} href={qrDataUrl} className="inline-block px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded text-sm transition duration-150">Download QR</a>
+                        <div className="mb-3 text-lg text-indigo-700 font-bold">Prescription QR Code Generated</div>
+                        <div className="mb-2 text-sm text-gray-700 font-medium">Scan this code with the Pharmacist View.</div>
+                        <div className="mb-3">Token (ID): <span className="font-mono text-indigo-700 font-semibold text-sm select-all break-all bg-indigo-100 p-1 rounded">{token}</span></div>
+                        <a download={`${token}.png`} href={qrDataUrl} className="inline-block px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm transition duration-150 font-medium shadow">Download QR</a>
                     </div>
                 </div>
             )}
@@ -248,6 +288,8 @@ function DoctorTab() {
 function PharmacistTab() {
     const [prescription, setPrescription] = useState(null);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false); // For manual lookup and dispense
+    const [cameraActive, setCameraActive] = useState(false); // NEW STATE
     const readerRef = useRef(null);
     const [manualToken, setManualToken] = useState('');
 
@@ -260,11 +302,10 @@ function PharmacistTab() {
     async function fetchByToken(token) {
         setError(null);
         setPrescription(null);
+        setLoading(true);
         try {
             if (!token) throw new Error("Please enter a token.");
             
-            // FIX: Re-adding the Authorization header based on your successful curl command.
-            // This confirms your backend requires a token for GET requests on this endpoint.
             const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(token)}`, {
                 method: "GET",
                 headers: { 
@@ -286,19 +327,23 @@ function PharmacistTab() {
             setPrescription(doc.data || doc);
         } catch (e) {
             setError("Lookup Failed: " + (e.message || "Failed to fetch prescription."));
+        } finally {
+            setLoading(false);
         }
     }
 
     function startScanner() {
+        if (readerRef.current) return;
         setError(null);
         setPrescription(null);
+        setCameraActive(true); // Set active immediately
+
         const Html5Qrcode = window.Html5Qrcode;
         if (!Html5Qrcode) {
             setError("html5-qrcode script not loaded. Please ensure it's linked.");
+            setCameraActive(false);
             return;
         }
-        
-        if (readerRef.current) return;
         
         const elementId = "reader";
         const html5QrCode = new Html5Qrcode(elementId);
@@ -308,35 +353,45 @@ function PharmacistTab() {
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
             (decodedText) => {
+                // On success
                 html5QrCode.stop().then(() => {
                     readerRef.current = null;
+                    setCameraActive(false); 
                     fetchByToken(decodedText);
-                }).catch(()=>{ readerRef.current = null; fetchByToken(decodedText); });
+                }).catch(()=>{ 
+                    readerRef.current = null; 
+                    setCameraActive(false); 
+                    fetchByToken(decodedText); 
+                });
             },
-            (err) => {}
+            (err) => {} // Suppress continuous logging of scanning attempts
         ).catch(err => {
-            // Refined error message to guide the user on common issues
-            const errorMessage = (err.message || String(err)).includes("not supported")
-                ? "Camera access failed: This is often caused by missing **HTTPS** (secure connection) or browser restrictions on mobile. Please use the **Manual Lookup** feature below."
+            // Camera initialization failure (the error you are seeing on mobile)
+            const errorMessage = (err.message || String(err)).toLowerCase().includes("permission") || (err.message || String(err)).toLowerCase().includes("not allowed")
+                ? "Camera access failed: This is often caused by missing **HTTPS** (secure connection) or browser restrictions on mobile. Please ensure your site is running on HTTPS or use the **Manual Lookup** feature below."
                 : "Camera access failed: " + (err.message || err);
 
             setError(errorMessage);
             readerRef.current = null;
+            setCameraActive(false);
         });
     }
 
     function stopScanner() {
         if (readerRef.current) {
+            // Check if the stop method is defined and call it
             if (typeof readerRef.current.stop === 'function') {
                 readerRef.current.stop().catch(()=>{});
             }
             readerRef.current = null;
         }
+        setCameraActive(false); // Always set to false when stopping
     }
 
     async function markDispensed() {
         if (!prescription || prescription.dispensed) return;
         setError(null);
+        setLoading(true);
         try {
             // This endpoint still uses the token for authorization
             const res = await fetch(`${API_BASE_URL}/${prescription._id}/dispense`, { 
@@ -348,82 +403,122 @@ function PharmacistTab() {
                 throw new Error(txt || res.statusText);
             }
             const json = await res.json();
+            // Update prescription state with the newly dispensed status
             setPrescription(json.data || json); 
             setError("Prescription marked as dispensed successfully!");
         } catch (e) {
             setError("Dispense failed: " + e.message);
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
         <div className="p-2">
-            <h2 className="text-xl font-semibold mb-3">Pharmacist — Scan QR or Lookup</h2>
+            <h2 className="text-xl font-semibold mb-5 text-indigo-700">Pharmacist — Scan QR or Lookup</h2>
 
             <div className="flex gap-3 mb-4">
-                <button onClick={startScanner} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded transition duration-150 shadow-md">Start Camera Scan</button>
-                <button onClick={stopScanner} className="px-4 py-2 border border-gray-300 hover:bg-gray-100 rounded transition duration-150">Stop Camera</button>
+                <button 
+                    onClick={startScanner} 
+                    className={`px-4 py-2 rounded-lg transition duration-150 shadow-md ${cameraActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                    disabled={cameraActive}
+                >
+                    {cameraActive ? 'Camera Active' : 'Start Camera Scan'}
+                </button>
+                <button 
+                    onClick={stopScanner} 
+                    className="px-4 py-2 border border-gray-300 hover:bg-gray-100 rounded-lg transition duration-150"
+                    disabled={!cameraActive}
+                >
+                    Stop Camera
+                </button>
             </div>
 
-            <div id="reader" className="w-full mb-4 rounded-lg overflow-hidden border-4 border-dashed border-gray-300" style={{ height: 300, background: "#f8f8f8" }}></div>
+            {/* NEW: Conditional rendering/styling for the reader area */}
+            <div 
+                id="reader" 
+                className={`w-full mb-4 rounded-xl overflow-hidden border-4 transition-all duration-300 ${cameraActive ? 'border-indigo-400' : 'border-dashed border-gray-300'}`} 
+                style={{ height: cameraActive ? 300 : 0, background: "#f8f8f8" }}
+            >
+                {/* The html5-qrcode library will populate this div when active */}
+            </div>
+            
+            {!cameraActive && (
+                <div className="p-4 mb-4 text-center text-sm text-gray-500 bg-gray-100 rounded-xl">
+                    Camera Scanner Inactive. Click 'Start Camera Scan' above or use manual lookup below.
+                </div>
+            )}
 
-            <div className="mb-5 p-4 border rounded-lg bg-gray-50">
-                <label className="block text-sm font-medium mb-1">Or enter prescription ID manually</label>
+
+            <div className="mb-6 p-4 border rounded-xl bg-gray-50 shadow-sm">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Or enter prescription ID manually</label>
                 <div className="flex gap-2">
                     <input 
                         type="text" 
-                        placeholder="Enter Prescription ID" 
+                        placeholder="Enter Prescription ID (e.g., 65f6c...)" 
                         value={manualToken} 
                         onChange={e => setManualToken(e.target.value)}
-                        className="border p-2 rounded flex-1 font-mono text-sm" 
+                        className="border p-2 rounded-lg flex-1 font-mono text-sm focus:ring-indigo-500 focus:border-indigo-500" 
                     />
-                    <button onClick={() => fetchByToken(manualToken)} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition duration-150">Lookup</button>
+                    <button 
+                        onClick={() => fetchByToken(manualToken)} 
+                        className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition duration-150 shadow-md"
+                        disabled={loading}
+                    >
+                        {loading ? 'Fetching...' : 'Lookup'}
+                    </button>
                 </div>
             </div>
 
-            {error && <div className="text-red-600 bg-red-100 p-3 rounded mb-3 whitespace-pre-line">{error}</div>}
+            {/* ERROR DISPLAY: Made more prominent */}
+            {error && <div className="text-red-800 bg-red-100 p-4 rounded-xl mb-5 font-medium whitespace-pre-line border border-red-200 shadow-md">{error}</div>}
 
             {prescription ? (
-                <div className="bg-green-50 p-4 rounded shadow-md border border-green-200">
-                    <h3 className="text-lg font-bold text-green-800 border-b pb-1 mb-2">Prescription Found (ID: {prescription._id})</h3>
-                    <div className="grid grid-cols-2 gap-y-2 text-sm">
-                         <div><strong>Patient:</strong> {prescription.patientName}</div>
-                         <div><strong>Date:</strong> {new Date(prescription.createdAt).toLocaleDateString()}</div>
-                         <div className="col-span-2"><strong>Doctor ID:</strong> <span className="font-mono text-xs">{prescription.doctor}</span></div>
+                <div className="bg-green-50 p-6 rounded-xl shadow-2xl border border-green-200">
+                    <h3 className="text-xl font-bold text-green-800 border-b pb-2 mb-3">Prescription Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm">
+                            <div className="bg-white p-2 rounded-lg shadow-inner"><strong>Patient:</strong> <span className="text-gray-700">{prescription.patientName}</span></div>
+                            <div className="bg-white p-2 rounded-lg shadow-inner"><strong>Date Issued:</strong> <span className="text-gray-700">{new Date(prescription.createdAt).toLocaleDateString()}</span></div>
+                            <div className="col-span-2 bg-white p-2 rounded-lg shadow-inner"><strong>Doctor ID:</strong> <span className="font-mono text-xs text-gray-600 break-all">{prescription.doctor}</span></div>
                     </div>
-                    <div className="mt-3 p-3 bg-white rounded border">
-                         <strong>Instructions:</strong> <p className="mt-1 text-gray-700">{prescription.instructions || 'No special instructions provided.'}</p>
+                    
+                    <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                            <strong className="block text-md mb-1 text-indigo-700">Instructions:</strong> <p className="text-gray-700 italic">{prescription.instructions || 'No special instructions provided.'}</p>
                     </div>
 
-                    <strong className="block mb-1 mt-4 text-gray-700">Medication List:</strong>
-                    <ul className="list-disc ml-5 bg-white p-3 rounded border">
+                    <strong className="block mb-2 mt-5 text-gray-700 text-lg">Medication List:</strong>
+                    <ul className="bg-white p-4 rounded-xl border border-gray-200 shadow-inner">
                         {prescription.medication.map((item, idx) => (
-                            <li key={idx} className="text-sm border-b last:border-b-0 py-1">
-                                
-                                <strong>{item.drug?.name || `Drug ID: ${item.drug}`}</strong> 
-                                <div className="text-gray-600 ml-2">
-                                     <span className="font-medium">Dose:</span> {item.dosage} | 
-                                     <span className="font-medium"> Qty:</span> {item.quantity}
+                            <li key={idx} className="text-base py-2 px-3 border-b last:border-b-0 flex justify-between items-center hover:bg-gray-50 rounded-md">
+                                <div className="font-semibold text-gray-800">{item.drug?.name || `Drug ID: ${item.drug}`}</div> 
+                                <div className="text-gray-600 text-sm flex-shrink-0">
+                                    <span className="font-medium bg-indigo-100 px-2 py-0.5 rounded-full">Dose: {item.dosage}</span>
+                                    <span className="font-medium bg-indigo-100 px-2 py-0.5 rounded-full ml-2">Qty: {item.quantity}</span>
                                 </div>
                             </li>
                         ))}
                     </ul>
                     
-                    <div className="mt-4 p-3 bg-white rounded border">
-                        <div className="text-lg font-semibold flex justify-between items-center">
-                            Dispensed Status: 
-                            <span className={`font-bold text-2xl ${prescription.dispensed ? 'text-red-600' : 'text-green-600'}`}>
+                    <div className="mt-5 p-4 bg-white rounded-xl border border-gray-300 shadow-md">
+                        <div className="text-xl font-bold flex justify-between items-center">
+                            Status: 
+                            <span className={`px-3 py-1 rounded-full text-white font-extrabold text-lg ${prescription.dispensed ? 'bg-red-600' : 'bg-green-600'}`}>
                                 {prescription.dispensed ? 'DISPENSED' : 'PENDING'}
                             </span>
                         </div>
                         {!prescription.dispensed && 
-                            <button onClick={markDispensed} className="mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow transition duration-150">
-                                Mark as Dispensed (Hypothetical Route)
+                            <button 
+                                onClick={markDispensed} 
+                                className="mt-4 px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition duration-150 font-semibold"
+                                disabled={loading}
+                            >
+                                {loading ? 'Processing...' : 'Mark as Dispensed (Hypothetical Route)'}
                             </button>
                         }
                     </div>
                 </div>
             ) : (
-                <div className="text-sm text-gray-500 p-3 bg-white rounded border">No prescription loaded. Scan a QR code or enter an ID.</div>
+                <div className="text-md text-gray-500 p-4 bg-white rounded-xl border border-gray-200 text-center">No prescription loaded. Scan a QR code or enter an ID above.</div>
             )}
         </div>
     );
@@ -434,22 +529,23 @@ export default function App() {
     const [tab, setTab] = React.useState("doctor");
 
     return (
-        <div className="min-h-screen p-6 bg-gray-100 font-sans">
+        <div className="min-h-screen p-4 sm:p-6 bg-gray-100 font-sans">
+            {/* Load QR Code Scanner Library */}
             <script src="https://unpkg.com/html5-qrcode"></script> 
             
-            <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6">
-                <header className="flex items-center justify-between mb-8 border-b pb-4">
-                    <h1 className="text-3xl font-extrabold text-indigo-700">MediScanQR</h1>
-                    <div className="flex rounded-lg overflow-hidden border border-indigo-200 shadow-inner">
+            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-200">
+                <header className="flex flex-col sm:flex-row items-center justify-between mb-8 border-b pb-4">
+                    <h1 className="text-3xl font-extrabold text-indigo-700 mb-4 sm:mb-0">MediScanQR</h1>
+                    <div className="flex rounded-xl overflow-hidden border border-indigo-200 shadow-lg">
                         <button 
-                            className={`px-4 py-2 text-sm font-medium transition duration-150 ${tab === "doctor" ? "bg-indigo-600 text-white shadow-md" : "text-indigo-600 bg-white hover:bg-indigo-50"}`} 
+                            className={`px-5 py-3 text-sm font-bold transition duration-150 ${tab === "doctor" ? "bg-indigo-600 text-white shadow-xl" : "text-indigo-600 bg-white hover:bg-indigo-50"}`} 
                             onClick={() => setTab("doctor")}
                         >
                             <span className="hidden sm:inline">Doctor View</span>
                             <span className="sm:hidden">Doctor</span>
                         </button>
                         <button 
-                            className={`px-4 py-2 text-sm font-medium transition duration-150 ${tab === "pharm" ? "bg-indigo-600 text-white shadow-md" : "text-indigo-600 bg-white hover:bg-indigo-50"}`} 
+                            className={`px-5 py-3 text-sm font-bold transition duration-150 ${tab === "pharm" ? "bg-indigo-600 text-white shadow-xl" : "text-indigo-600 bg-white hover:bg-indigo-50"}`} 
                             onClick={() => setTab("pharm")}
                         >
                             <span className="hidden sm:inline">Pharmacist View</span>
