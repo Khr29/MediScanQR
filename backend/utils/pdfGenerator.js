@@ -43,4 +43,4 @@ const createPrescriptionPDF = (prescription) => {
   });
 };
 
-module.exports = { createPrescriptionPDF };
+module.exports = { createPrescriptionPDF };//INIT
