@@ -1,20 +1,46 @@
-const Prescription = require('../models/Prescription');
-const PatientProfile = require('../models/PatientProfile');
-
-// @desc Create a new prescription with unique RX ID
 exports.createPrescription = async (req, res) => {
   try {
-    const { patientName, patientAge, doctorName, doctorSignature, medicines, validityDays } = req.body;
+    const { patientEmail, medicines, digitalSignature, notes } = req.body;
 
+    // Find patient by email
+    const user = await User.findOne({ email: patientEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Patient not found.",
+      });
+    }
+
+    // Find patient profile
+    const profile = await PatientProfile.findOne({
+      user: user._id,
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        message: "Patient profile not found.",
+      });
+    }
+
+    // 👇 ADD THESE TWO LINES
+    console.log("========== DEBUG ==========");
+    console.log("User:", user);
+    console.log("Profile:", profile);
+    console.log("===========================");
+
+    // Generate unique Prescription ID
     const rxId = `RX-${Math.floor(100000 + Math.random() * 900000)}`;
-    const expiryDate = new Date(Date.now() + (validityDays || 14) * 24 * 60 * 60 * 1000);
 
+    // Prescription expires after 14 days
+    const expiryDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    // Create prescription
     const prescription = new Prescription({
       prescriptionId: rxId,
-      patientName,
-      patientAge,
-      doctorName: doctorName || req.user.name,
-      doctorSignature,
+      patientName: user.name,
+      patientAge: profile.age,
+      doctorName: req.user.name,
+      doctorSignature: digitalSignature,
       medicines,
       expiresAt: expiryDate,
     });
@@ -26,26 +52,10 @@ exports.createPrescription = async (req, res) => {
       prescription,
     });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
+    console.error(error);
 
-// @desc Get prescriptions created by doctor
-exports.getDoctorPrescriptions = async (req, res) => {
-  try {
-    const prescriptions = await Prescription.find({ doctorName: req.user.name }).sort({ createdAt: -1 });
-    return res.status(200).json(prescriptions);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc Search Patients for Doctor Portal
-exports.searchPatients = async (req, res) => {
-  try {
-    const profiles = await PatientProfile.find().populate('user', 'name email');
-    return res.status(200).json(profiles);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
