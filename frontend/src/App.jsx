@@ -1,100 +1,267 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import DoctorPortal from './DoctorPortal';
-import PharmacyPortal from './PharmacyPortal';
 
-function Layout() {
+import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import RoleGuard from './components/auth/RoleGuard';
+
+// Public Pages
+import PublicVerify from './pages/PublicVerify';
+
+// Auth Pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+
+// Doctor Pages
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import PatientManagement from './pages/doctor/PatientManagement';
+import CreatePrescription from './pages/doctor/CreatePrescription';
+import PrescriptionHistory from './pages/doctor/PrescriptionHistory';
+import DoctorAnalytics from './pages/doctor/DoctorAnalytics';
+
+// Patient Pages
+import PatientDashboard from './pages/patient/PatientDashboard';
+import MyPrescriptions from './pages/patient/MyPrescriptions';
+import PrescriptionDetail from './pages/patient/PrescriptionDetail';
+import MedicineHistory from './pages/patient/MedicineHistory';
+import PatientProfile from './pages/patient/PatientProfile';
+
+// Pharmacy Pages
+import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
+import ScanPrescription from './pages/pharmacy/ScanPrescription';
+import DispensePortal from './pages/pharmacy/DispensePortal';
+import ScanHistory from './pages/pharmacy/ScanHistory';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import DoctorApprovals from './pages/admin/DoctorApprovals';
+import PharmacyApprovals from './pages/admin/PharmacyApprovals';
+import AuditLogs from './pages/admin/AuditLogs';
+import SystemAnalytics from './pages/admin/SystemAnalytics';
+
+function App() {
   return (
-    <div>
-      <Toaster 
-        position="top-right" 
-        toastOptions={{
-          duration: 3500,
-          style: {
-            background: '#0f172a',
-            color: '#ffffff',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: '600',
-            padding: '12px 18px',
-          },
-        }} 
-      />
+    <Router>
+      <AuthProvider>
+        <NotificationProvider>
+          <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify/:id" element={<PublicVerify />} />
 
-      {/* Top Navigation with Real Web Links */}
-      <div className="navbar-wrapper">
-        <div className="container-nav">
-          <NavLink to="/doctor" className="brand-logo">
-            🏥 MediScan<span>QR</span>
-          </NavLink>
+            {/* Doctor Routes */}
+            <Route
+              path="/doctor/dashboard"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <DoctorDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/patients"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <PatientManagement />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/create-prescription"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <CreatePrescription />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/history"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <PrescriptionHistory />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/analytics"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <DoctorAnalytics />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
 
-          <div className="portal-switch-pill">
-            <NavLink 
-              to="/doctor" 
-              className={({ isActive }) => `pill-btn ${isActive ? 'active' : ''}`}
-            >
-              🩺 Doctor Portal
-            </NavLink>
-            <NavLink 
-              to="/pharmacy" 
-              className={({ isActive }) => `pill-btn ${isActive ? 'active' : ''}`}
-            >
-              💊 Pharmacy Portal
-            </NavLink>
-          </div>
-        </div>
-      </div>
+            {/* Patient Routes */}
+            <Route
+              path="/patient/dashboard"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <PatientDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/prescriptions"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <MyPrescriptions />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/prescription/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <PrescriptionDetail />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/history"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <MedicineHistory />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/profile"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <PatientProfile />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
 
-      {/* Main Workspace Grid */}
-      <div className="laptop-workspace">
-        <div className="laptop-grid">
-          
-          <div className="hero-left">
-            <div className="hero-tag">
-              ⚡ Digital Prescription Network
-            </div>
-            <h1 className="hero-heading">
-              Secure prescription verification for healthcare
-            </h1>
-            <p className="hero-desc">
-              Prevent fraud, eliminate paper prescriptions, and ensure single-dispense accuracy with instant QR verification.
-            </p>
+            {/* Pharmacy Routes */}
+            <Route
+              path="/pharmacy/dashboard"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <PharmacyDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pharmacy/scan"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <ScanPrescription />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pharmacy/dispense/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <DispensePortal />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pharmacy/history"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <ScanHistory />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
 
-            <div className="trust-list">
-              <div className="trust-item">
-                <div className="check-icon">✓</div>
-                <span>Encrypted doctor authentication & digital signatures</span>
-              </div>
-              <div className="trust-item">
-                <div className="check-icon">✓</div>
-                <span>Real-time pharmacy QR scanning & instant validation</span>
-              </div>
-              <div className="trust-item">
-                <div className="check-icon">✓</div>
-                <span>Anti-fraud protocol prevents duplicate medicine dispensing</span>
-              </div>
-            </div>
-          </div>
+            {/* Admin Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/doctor-approvals"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <DoctorApprovals />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/pharmacy-approvals"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <PharmacyApprovals />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AuditLogs />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <SystemAnalytics />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
 
-          <div className="hero-right">
-            <Routes>
-              <Route path="/" element={<Navigate to="/doctor" replace />} />
-              <Route path="/doctor" element={<DoctorPortal />} />
-              <Route path="/pharmacy" element={<PharmacyPortal />} />
-            </Routes>
-          </div>
-
-        </div>
-      </div>
-    </div>
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </NotificationProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
-  );
-}
+export default App;

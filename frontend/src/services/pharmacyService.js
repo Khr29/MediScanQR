@@ -1,0 +1,31 @@
+import api from "./api";
+
+export const getPharmacyStats = async () => {
+  const response = await api.get("/pharmacy/stats");
+  return response.data;
+};
+
+export const getPharmacyDashboardStats = getPharmacyStats;
+
+export const verifyPrescriptionQR = async (qrPayload) => {
+  const response = await api.post("/pharmacy/verify-qr", { qrPayload });
+  return response.data;
+};
+
+export const verifyQR = verifyPrescriptionQR;
+export const verifyPrescription = verifyPrescriptionQR;
+
+export const dispensePrescription = async (id, dispenseData) => {
+  const response = await api.post(`/pharmacy/dispense/${id}`, dispenseData);
+  return response.data;
+};
+
+export const dispenseMedicines = dispensePrescription;
+
+export const getDispenseHistory = async () => {
+  const response = await api.get("/pharmacy/history");
+  return response.data;
+};
+
+export const getScanHistory = getDispenseHistory;
+export const getDispensedHistory = getDispenseHistory; // Added alias

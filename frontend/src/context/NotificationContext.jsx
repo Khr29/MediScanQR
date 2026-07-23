@@ -12,9 +12,19 @@ export const NotificationProvider = ({ children }) => {
     if (!isAuthenticated) return;
     try {
       const data = await getUserNotifications();
-      setNotifications(data);
+      
+      // Ensure data is strictly an array before setting state
+      if (Array.isArray(data)) {
+        setNotifications(data);
+      } else if (data && Array.isArray(data.notifications)) {
+        setNotifications(data.notifications);
+      } else {
+        setNotifications([]);
+      }
     } catch (error) {
       console.error('Error loading notifications:', error);
+      // Fallback to empty array on 404 or any network error
+      setNotifications([]);
     }
   };
 
@@ -26,14 +36,19 @@ export const NotificationProvider = ({ children }) => {
     try {
       await markNotificationRead(id);
       setNotifications((prev) =>
-        prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
+        Array.isArray(prev)
+          ? prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
+          : []
       );
     } catch (error) {
       console.error('Error marking notification read:', error);
     }
   };
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  // Safe check prevents crash if notifications state isn't an array
+  const unreadCount = Array.isArray(notifications)
+    ? notifications.filter((n) => !n?.isRead).length
+    : 0;
 
   return (
     <NotificationContext.Provider value={{ notifications, unreadCount, fetchNotifications, markAsRead }}>

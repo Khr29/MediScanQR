@@ -27,12 +27,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const data = await apiLogin(credentials);
+
+    // 💡 SAVE TOKEN TO LOCALSTORAGE HERE:
+    const token = data?.token || data?.accessToken;
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+
     setUser(data.user);
     return data;
   };
 
   const logout = () => {
     apiLogout();
+    localStorage.removeItem('token'); // Ensure token is wiped on logout
     setUser(null);
   };
 
