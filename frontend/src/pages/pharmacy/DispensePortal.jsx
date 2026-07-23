@@ -46,8 +46,7 @@ const DispensePortal = () => {
   const handleConfirmDispense = async () => {
     setDispensing(true);
     try {
-      await dispensePrescription({
-        prescriptionId: id,
+      await dispensePrescription(id, {
         dispensedItems,
         pharmacyNotes: notes,
       });

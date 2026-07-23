@@ -1,24 +1,25 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Loader from '../common/Loader';
 
-const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children }) => {
+  const { loading, isAuthenticated } = useAuth();
+
+  console.log("ProtectedRoute");
+  console.log("loading:", loading);
+  console.log("authenticated:", isAuthenticated);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader text="Verifying authentication session..." />
-      </div>
-    );
+    console.log("Loading...");
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
+    console.log("Redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  console.log("Rendering children");
+  return children;
 };
 
 export default ProtectedRoute;

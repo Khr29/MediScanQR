@@ -46,8 +46,8 @@ const CreatePrescription = () => {
         notes,
       });
 
-      setQrCodeUrl(response.qrCodeUrl || response.prescription?.qrCodeUrl);
-      setCreatedRxId(response.prescriptionId || response.prescription?._id);
+      setQrCodeUrl(response.prescription?.qrCode);
+      setCreatedRxId(response.prescription?.prescriptionId);
     } catch (err) {
       alert(err.response?.data?.message || 'Error creating prescription');
     } finally {
@@ -72,7 +72,7 @@ const CreatePrescription = () => {
               <h2 className="text-lg font-bold text-slate-900">Prescription Issued Successfully!</h2>
               <p className="text-xs text-slate-500 mt-1 mb-6">Rx ID: <span className="font-mono font-bold text-slate-800">{createdRxId}</span></p>
               
-              <QRDisplay qrCodeUrl={qrCodeUrl} prescriptionId={createdRxId} />
+              <QRDisplay value={qrCodeUrl} />
               
               <button
                 onClick={() => { setCreatedRxId(''); setMedicines([]); setQrCodeUrl(''); }}

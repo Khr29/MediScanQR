@@ -14,7 +14,7 @@ const generateQRCode = async (payload) => {
       margin: 2,
       width: 300,
       color: {
-        dark: "#0284C7", // Medical theme blue primary
+        dark: "#000000", // Medical theme blue primary
         light: "#FFFFFF",
       },
     });

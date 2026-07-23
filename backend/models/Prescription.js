@@ -1,32 +1,73 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const PrescriptionSchema = new mongoose.Schema(
   {
-    prescriptionId: { type: String, required: true, unique: true },
-    patientName: { type: String, required: true },
-    patientAge: { type: Number, required: true },
-    doctorName: { type: String, required: true },
-    doctorSignature: { type: String }, // Base64 canvas image data
+    prescriptionId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    patientName: {
+      type: String,
+      required: true,
+    },
+
+    patientAge: {
+      type: Number,
+      required: true,
+    },
+
+    doctorName: {
+      type: String,
+      required: true,
+    },
+
+    doctorSignature: {
+      type: String,
+    },
+
+    // ✅ QR Image (Base64 Data URL)
+    qrCode: {
+      type: String,
+    },
+
     medicines: [
       {
-        name: { type: String, required: true },
-        dosage: { type: String, required: true },
-        frequency: { type: String, required: true },
+        name: {
+          type: String,
+          required: true,
+        },
+        dosage: {
+          type: String,
+          required: true,
+        },
+        frequency: {
+          type: String,
+          required: true,
+        },
       },
     ],
+
     status: {
       type: String,
-      enum: ['PENDING', 'DISPENSED', 'EXPIRED'],
-      default: 'PENDING',
+      enum: ["PENDING", "DISPENSED", "EXPIRED"],
+      default: "PENDING",
     },
-    dispensedBy: { type: String }, // Pharmacy name or account ID
-    dispensedAt: { type: Date },
+
+    dispensedBy: String,
+
+    dispensedAt: Date,
+
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Default 14 days validity
+      default: () =>
+        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-module.exports = mongoose.model('Prescription', PrescriptionSchema);
+module.exports = mongoose.model("Prescription", PrescriptionSchema);

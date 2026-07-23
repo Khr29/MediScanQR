@@ -10,11 +10,21 @@ const ScanPrescription = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('camera'); // 'camera' or 'upload'
 
-  const handleScanSuccess = (prescriptionId) => {
-    if (prescriptionId) {
-      navigate(`/pharmacy/dispense/${prescriptionId}`);
+  const handleScanSuccess = (decodedText) => {
+  try {
+    // Parse the QR JSON
+    const qrData = JSON.parse(decodedText);
+
+    if (qrData.prescriptionId) {
+      navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
+    } else {
+      alert("Invalid QR Code.");
     }
-  };
+  } catch (err) {
+    // Fallback if QR contains only plain text
+    navigate(`/pharmacy/dispense/${decodedText}`);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

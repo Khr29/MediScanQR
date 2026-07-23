@@ -57,3 +57,40 @@ exports.dispensePrescription = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+// @desc Pharmacy Dashboard Statistics
+exports.getPharmacyStats = async (req, res) => {
+  try {
+    const totalDispensed = await Prescription.countDocuments({
+      status: "DISPENSED",
+    });
+
+    const pendingPrescriptions = await Prescription.countDocuments({
+      status: "PENDING",
+    });
+
+    const expiredPrescriptions = await Prescription.countDocuments({
+      status: "EXPIRED",
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dispensedToday = await Prescription.countDocuments({
+      status: "DISPENSED",
+      dispensedAt: {
+        $gte: today,
+      },
+    });
+
+    res.status(200).json({
+      totalDispensed,
+      pendingPrescriptions,
+      expiredPrescriptions,
+      dispensedToday,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

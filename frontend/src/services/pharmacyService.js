@@ -7,13 +7,13 @@ export const getPharmacyStats = async () => {
 
 export const getPharmacyDashboardStats = getPharmacyStats;
 
-export const verifyPrescriptionQR = async (qrPayload) => {
-  const response = await api.post("/pharmacy/verify-qr", { qrPayload });
+export const verifyPrescription = async (rxId) => {
+  const response = await api.get(`/pharmacy/verify/${rxId}`);
   return response.data;
 };
 
-export const verifyQR = verifyPrescriptionQR;
-export const verifyPrescription = verifyPrescriptionQR;
+// alias if another component uses it
+export const verifyQR = verifyPrescription;
 
 export const dispensePrescription = async (id, dispenseData) => {
   const response = await api.post(`/pharmacy/dispense/${id}`, dispenseData);

@@ -1,35 +1,76 @@
-import React, { useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { Camera } from 'lucide-react';
+import React, { useEffect, useRef } from "react";
+import { Html5Qrcode } from "html5-qrcode";
+import { Camera } from "lucide-react";
 
 const ScannerCamera = ({ onScanSuccess, onScanError }) => {
-  const scannerRef = useRef(null);
+  const qrRef = useRef(null);
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner(
-      'camera-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
+    let html5QrCode;
 
-    scanner.render(
-      (decodedText) => {
-        scanner.clear();
-        if (onScanSuccess) onScanSuccess(decodedText);
-      },
-      (errorMessage) => {
-        if (onScanError) onScanError(errorMessage);
-      }
-    );
+    const startScanner = async () => {
+      try {
+        html5QrCode = new Html5Qrcode("camera-reader");
+        qrRef.current = html5QrCode;
 
-    scannerRef.current = scanner;
+        const cameras = await Html5Qrcode.getCameras();
+        console.log("Available cameras:", cameras);
 
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch((err) => console.error(err));
+        if (!cameras || cameras.length === 0) {
+          throw new Error("No camera found.");
+        }
+
+        await html5QrCode.start(
+          {
+            deviceId: {
+              exact: cameras[0].id,
+            },
+          },
+          {
+            fps: 10,
+            qrbox: {
+              width: 250,
+              height: 250,
+            },
+          },
+          async (decodedText) => {
+            console.log("QR Scanned:", decodedText);
+
+            await html5QrCode.stop();
+
+            if (onScanSuccess) {
+              onScanSuccess(decodedText);
+            }
+          },
+          (errorMessage) => {
+            // Ignore continuous scan failures
+            // Uncomment if you want to debug:
+            // console.log(errorMessage);
+          }
+        );
+      } catch (err) {
+        console.error("Scanner failed:", err);
+
+        if (onScanError) {
+          onScanError(err);
+        }
       }
     };
-  }, [onScanSuccess, onScanError]);
+
+    startScanner();
+
+    return () => {
+      if (
+        qrRef.current &&
+        qrRef.current.isScanning
+      ) {
+        qrRef.current
+          .stop()
+          .then(() => qrRef.current.clear())
+          .catch(() => {});
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full max-w-md mx-auto rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -37,7 +78,11 @@ const ScannerCamera = ({ onScanSuccess, onScanError }) => {
         <Camera className="h-4 w-4 text-sky-600" />
         <span>Live Camera Scanner</span>
       </div>
-      <div id="camera-reader" className="overflow-hidden rounded-lg border border-slate-200"></div>
+
+      <div
+        id="camera-reader"
+        className="rounded-lg border border-slate-200"
+      />
     </div>
   );
 };

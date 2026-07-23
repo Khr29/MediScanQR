@@ -153,11 +153,14 @@ const PrescriptionDetail = () => {
       {/* QR Modal Display */}
       {showQR && (
         <QRModal
-          prescriptionId={prescription.prescriptionId || prescription._id}
-          qrPayload={prescription.qrPayload || prescription.prescriptionId || id}
+          isOpen={showQR}
           onClose={() => setShowQR(false)}
+          qrCodeUrl={prescription.qrCode}
+          prescriptionId={prescription.prescriptionId}
+          doctorName={prescription.doctorName}
+          date={prescription.createdAt}
         />
-      )}
+)}
     </div>
   );
 };

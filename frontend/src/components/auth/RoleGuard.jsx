@@ -1,28 +1,24 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Loader from '../common/Loader';
 
-const RoleGuard = ({ allowedRoles = [] }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+const RoleGuard = ({ children, allowedRoles = [] }) => {
+  const { user } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader text="Checking role authorization..." />
-      </div>
-    );
-  }
+  console.log("RoleGuard");
+  console.log(user);
 
-  if (!isAuthenticated) {
+  if (!user) return <Navigate to="/login" replace />;
+
+  console.log("User role:", user.role);
+
+  if (!allowedRoles.includes(user.role)) {
+    console.log("Wrong role");
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  console.log("Role OK");
 
-  return <Outlet />;
+  return children;
 };
 
 export default RoleGuard;

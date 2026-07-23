@@ -32,7 +32,7 @@ const MyPrescriptions = () => {
   const filtered = prescriptions.filter(
     (rx) =>
       rx.prescriptionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rx.doctor?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      rx.doctorName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -66,7 +66,7 @@ const MyPrescriptions = () => {
                 <tr key={rx._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId || rx._id}</td>
                   <td className="px-6 py-4 text-xs font-semibold text-slate-800">
-                    {rx.doctor?.name ? `Dr. ${rx.doctor.name}` : 'Authorized Physician'}
+                    {rx.doctorName ? `Dr. ${rx.doctorName}` : 'Authorized Physician'}
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0} Meds</td>
                   <td className="px-6 py-4 text-xs">
@@ -99,9 +99,9 @@ const MyPrescriptions = () => {
             <QRModal
               isOpen={!!selectedQR}
               onClose={() => setSelectedQR(null)}
-              qrCodeUrl={selectedQR.qrCodeUrl}
-              prescriptionId={selectedQR.prescriptionId || selectedQR._id}
-              doctorName={selectedQR.doctor?.name}
+              qrCodeUrl={selectedQR.qrCode}
+              prescriptionId={selectedQR.prescriptionId}
+              doctorName={selectedQR.doctorName}
               date={selectedQR.createdAt}
             />
           )}
