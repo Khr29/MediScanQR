@@ -23,14 +23,14 @@ const Sidebar = () => {
       case 'PATIENT':
         return [
           { label: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
-          { label: 'My Prescriptions', path: '/patient/prescriptions', icon: FileText },
+          { label: 'My Prescriptions', path: '/patient/history', icon: FileText },
           { label: 'My Profile', path: '/patient/profile', icon: UserCircle },
         ];
       case 'PHARMACY':
         return [
           { label: 'Dashboard', path: '/pharmacy/dashboard', icon: LayoutDashboard },
-          { label: 'Verify QR Code', path: '/pharmacy/verify', icon: QrCode },
-          { label: 'Dispense Logs', path: '/pharmacy/logs', icon: CheckCircle },
+          { label: 'Verify QR Code', path: '/pharmacy/scan', icon: QrCode },
+          { label: 'Dispense Logs', path: '/pharmacy/history', icon: CheckCircle },
         ];
       case 'ADMIN':
         return [
