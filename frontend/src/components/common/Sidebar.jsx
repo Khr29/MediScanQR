@@ -17,7 +17,7 @@ const Sidebar = () => {
         return [
           { label: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
           { label: 'Create Prescription', path: '/doctor/create-prescription', icon: FilePlus },
-          { label: 'Prescription History', path: '/doctor/prescriptions', icon: FileText },
+          { label: 'Prescription History', path: '/doctor/history', icon: FileText },
           { label: 'Patient Search', path: '/doctor/patients', icon: Users },
         ];
       case 'PATIENT':
