@@ -29,14 +29,10 @@ exports.createPrescription = async (req, res) => {
     }
 
     // Generate Prescription ID
-    const rxId = `RX-${Math.floor(
-      100000 + Math.random() * 900000
-    )}`;
+    const rxId = `RX-${Math.floor(100000 + Math.random() * 900000)}`;
 
     // Expiry after 14 days
-    const expiryDate = new Date(
-      Date.now() + 14 * 24 * 60 * 60 * 1000
-    );
+    const expiryDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
     // QR payload
     const qrPayload = {
@@ -52,14 +48,23 @@ exports.createPrescription = async (req, res) => {
     // Save prescription
     const prescription = new Prescription({
       prescriptionId: rxId,
+
+      // Patient information
+      patient: user._id,
       patientName: user.name,
       patientAge: profile.age,
+
+      // Doctor information
       doctorName: req.user.name,
       doctorSignature: digitalSignature,
+
       medicines,
+
       qrCode,
       expiresAt: expiryDate,
     });
+    console.log("Prescription before save:");
+    console.log(prescription);
 
     await prescription.save();
 
@@ -148,10 +153,7 @@ exports.getDoctorPrescriptions = async (req, res) => {
 // @desc Search Patients for Doctor Portal
 exports.searchPatients = async (req, res) => {
   try {
-    const profiles = await PatientProfile.find().populate(
-      "user",
-      "name email"
-    );
+    const profiles = await PatientProfile.find().populate("user", "name email");
 
     return res.status(200).json(profiles);
   } catch (error) {

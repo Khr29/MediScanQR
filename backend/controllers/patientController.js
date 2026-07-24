@@ -5,19 +5,23 @@ const PatientProfile = require("../models/PatientProfile");
 exports.getMyPrescriptions = async (req, res) => {
   try {
     const prescriptions = await Prescription.find({
-      patientName: req.user.name,
+      patient: req.user._id,
     }).sort({ createdAt: -1 });
+
     return res.status(200).json(prescriptions);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
+
 // @desc Get a single prescription by ID
 exports.getPrescriptionById = async (req, res) => {
   try {
     const prescription = await Prescription.findOne({
       _id: req.params.id,
-      patientName: req.user.name,
+      patient: req.user._id,
     });
 
     if (!prescription) {
@@ -40,8 +44,11 @@ exports.getPatientProfile = async (req, res) => {
     const profile = await PatientProfile.findOne({
       user: req.user._id,
     }).populate("user", "name email");
+
     return res.status(200).json(profile);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };

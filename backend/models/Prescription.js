@@ -13,6 +13,13 @@ const PrescriptionSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Link prescription to the actual patient account
+    patient: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     patientAge: {
       type: Number,
       required: true,
@@ -27,7 +34,7 @@ const PrescriptionSchema = new mongoose.Schema(
       type: String,
     },
 
-    // ✅ QR Image (Base64 Data URL)
+    // QR Image (Base64 Data URL)
     qrCode: {
       type: String,
     },
