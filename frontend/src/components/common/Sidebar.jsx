@@ -23,7 +23,7 @@ const Sidebar = () => {
       case 'PATIENT':
         return [
           { label: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
-          { label: 'My Prescriptions', path: '/patient/history', icon: FileText },
+          { label: 'My Prescriptions', path: '/patient/prescriptions', icon: FileText },
           { label: 'My Profile', path: '/patient/profile', icon: UserCircle },
         ];
       case 'PHARMACY':
