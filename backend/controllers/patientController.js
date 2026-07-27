@@ -83,3 +83,36 @@ exports.getPatientProfile = async (req, res) => {
     });
   }
 };
+exports.updatePatientProfile = async (req, res) => {
+  try {
+    const { bloodGroup, phone, age } = req.body;
+
+    // Update PatientProfile
+    let profile = await PatientProfile.findOne({ user: req.user._id });
+
+    if (!profile) {
+      return res.status(404).json({
+        message: "Patient profile not found",
+      });
+    }
+
+    profile.bloodGroup = bloodGroup ?? profile.bloodGroup;
+    profile.age = age ?? profile.age;
+
+    // Your frontend uses "phone", but your model stores "emergencyContact"
+    profile.emergencyContact = phone ?? profile.emergencyContact;
+
+    await profile.save();
+
+    // Return updated profile with user info
+    profile = await PatientProfile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email");
+
+    return res.status(200).json(profile);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};

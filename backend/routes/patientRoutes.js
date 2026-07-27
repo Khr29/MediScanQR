@@ -5,6 +5,7 @@ const {
   getMyPrescriptions,
   getPatientDashboard,
   getPatientProfile,
+  updatePatientProfile,
   getPrescriptionById,
 } = require("../controllers/patientController");
 
@@ -38,6 +39,13 @@ router.get(
   verifyToken,
   requireRole(roles.PATIENT),
   getPatientProfile,
+);
+
+router.put(
+  "/profile",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  updatePatientProfile,
 );
 
 module.exports = router;

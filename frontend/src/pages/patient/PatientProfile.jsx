@@ -15,7 +15,14 @@ const PatientProfile = () => {
     const fetchProfile = async () => {
       try {
         const data = await getPatientProfile();
-        setProfile(data);
+
+        setProfile({
+          name: data.user?.name || "",
+          email: data.user?.email || "",
+          phone: data.emergencyContact || "",
+          bloodGroup: data.bloodGroup || "",
+          dob: data.age || "",
+        });
       } catch (err) {
         console.error('Error loading patient profile:', err);
       } finally {
