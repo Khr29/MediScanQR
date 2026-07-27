@@ -1,5 +1,6 @@
 const Prescription = require("../models/Prescription");
 const PatientProfile = require("../models/PatientProfile");
+const User = require("../models/User");
 
 // @desc Get active digital prescriptions for logged in patient
 exports.getMyPrescriptions = async (req, res) => {
