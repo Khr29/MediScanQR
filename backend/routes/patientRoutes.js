@@ -1,21 +1,43 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+
 const {
   getMyPrescriptions,
+  getPatientDashboard,
   getPatientProfile,
   getPrescriptionById,
-} = require('../controllers/patientController');
-const { verifyToken } = require('../middleware/authMiddleware');
-const { requireRole } = require('../middleware/roleMiddleware');
-const roles = require('../config/roles');
+} = require("../controllers/patientController");
 
-router.get('/my-prescriptions', verifyToken, requireRole(roles.PATIENT), getMyPrescriptions);
+const { verifyToken } = require("../middleware/authMiddleware");
+const { requireRole } = require("../middleware/roleMiddleware");
+const roles = require("../config/roles");
+
 router.get(
-  '/prescriptions/:id',
+  "/my-prescriptions",
   verifyToken,
   requireRole(roles.PATIENT),
-  getPrescriptionById
+  getMyPrescriptions,
 );
-router.get('/profile', verifyToken, requireRole(roles.PATIENT), getPatientProfile);
+
+router.get(
+  "/dashboard",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  getPatientDashboard,
+);
+
+router.get(
+  "/prescriptions/:id",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  getPrescriptionById,
+);
+
+router.get(
+  "/profile",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  getPatientProfile,
+);
 
 module.exports = router;

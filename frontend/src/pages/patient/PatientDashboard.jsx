@@ -98,7 +98,7 @@ const PatientDashboard = () => {
                     <tr key={rx._id} className="hover:bg-slate-50">
                       <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId || rx._id}</td>
                       <td className="px-6 py-4 text-xs font-semibold text-slate-800">
-                        {rx.doctor?.name ? `Dr. ${rx.doctor.name}` : 'Authorized Physician'}
+                        {rx.doctorName ? `Dr. ${rx.doctorName}` : 'Authorized Physician'}
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0} Meds</td>
                       <td className="px-6 py-4 text-xs">
@@ -127,7 +127,7 @@ const PatientDashboard = () => {
               onClose={() => setSelectedQR(null)}
               qrCodeUrl={selectedQR.qrCodeUrl}
               prescriptionId={selectedQR.prescriptionId || selectedQR._id}
-              doctorName={selectedQR.doctor?.name}
+              doctorName={selectedQR.doctorName}
               date={selectedQR.createdAt}
             />
           )}

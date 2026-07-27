@@ -37,6 +37,37 @@ exports.getPrescriptionById = async (req, res) => {
     });
   }
 };
+// @desc Get patient dashboard statistics
+exports.getPatientDashboard = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find({
+      patient: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    const totalPrescriptions = prescriptions.length;
+
+    const activePrescriptions = prescriptions.filter(
+      (p) => p.status !== "DISPENSED",
+    ).length;
+
+    const dispensedPrescriptions = prescriptions.filter(
+      (p) => p.status === "DISPENSED",
+    ).length;
+
+    res.status(200).json({
+      totalPrescriptions,
+      activePrescriptions,
+      dispensedPrescriptions,
+      recentPrescriptions: prescriptions.slice(0, 5),
+    });
+  } catch (error) {
+    console.error("Dashboard Error:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 // @desc Get patient medical profile details
 exports.getPatientProfile = async (req, res) => {
