@@ -12,25 +12,26 @@ const PatientProfile = () => {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await getPatientProfile();
+  const fetchProfile = async () => {
+    try {
+      const data = await getPatientProfile();
 
-        setProfile({
-          name: data.user?.name || "",
-          email: data.user?.email || "",
-          phone: data.emergencyContact || "",
-          bloodGroup: data.bloodGroup || "",
-          dob: data.age || "",
-        });
-      } catch (err) {
-        console.error('Error loading patient profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+      setProfile({
+        name: data.user?.name || "",
+        email: data.user?.email || "",
+        phone: data.emergencyContact || "",
+        bloodGroup: data.bloodGroup || "",
+        dob: data.age || "",
+      });
+    } catch (err) {
+      console.error("Error loading patient profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
