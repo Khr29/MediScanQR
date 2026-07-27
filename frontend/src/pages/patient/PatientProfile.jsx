@@ -151,7 +151,7 @@ const PatientProfile = () => {
                           bloodGroup: e.target.value,
                         })
                       }
-                      className="w-full rounded-lg border border-slate-300 pl-7 pr-3 py-2 text-xs focus:border-sky-500 focus:outline-none"
+                      className="w-full h-11 rounded-lg border border-slate-300 pl-7 pr-3 text-xs focus:border-sky-500 focus:outline-none"
                     >
                       <option value="">Select Blood Group</option>
                       <option value="A+">A+</option>
