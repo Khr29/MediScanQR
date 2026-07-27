@@ -16,6 +16,7 @@ const DispensePortal = () => {
   const [dispensing, setDispensing] = useState(false);
   const [dispensedItems, setDispensedItems] = useState({});
   const [notes, setNotes] = useState('');
+  const isDispensed = prescription?.status === "DISPENSED";
 
   useEffect(() => {
     const fetchAndVerify = async () => {
@@ -102,22 +103,49 @@ const DispensePortal = () => {
                     </div>
                     <p className="text-xs text-slate-500 font-mono mt-0.5">Rx ID: {prescription?.prescriptionId || id}</p>
                   </div>
-                  <Badge variant={prescription?.status === 'DISPENSED' ? 'success' : 'info'}>
-                    {prescription?.status}
+                  <Badge variant={isDispensed ? "danger" : "info"}>
+                    {isDispensed ? "ALREADY DISPENSED" : prescription?.status}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-xs text-slate-600 bg-slate-50 p-4 rounded-xl">
                   <div>
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Patient</span>
-                    <span className="font-bold text-slate-800">{prescription?.patient?.name || prescription?.patientName || 'N/A'}</span>
+                    <span className="block text-[10px] text-slate-400 font-bold uppercase">
+                      Patient
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {prescription?.patient?.name || prescription?.patientName || "N/A"}
+                    </span>
                   </div>
+
                   <div>
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Prescribing Doctor</span>
-                    <span className="font-bold text-slate-800">{prescription?.doctor?.name ? `Dr. ${prescription.doctor.name}` : 'Authorized Physician'}</span>
+                    <span className="block text-[10px] text-slate-400 font-bold uppercase">
+                      Prescribing Doctor
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {prescription?.doctor?.name
+                        ? `Dr. ${prescription.doctor.name}`
+                        : "Authorized Physician"}
+                    </span>
                   </div>
                 </div>
-              </div>
+
+                {isDispensed && (
+                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+
+                    <div>
+                      <p className="text-sm font-bold text-red-700">
+                        This prescription has already been dispensed.
+                      </p>
+
+                      <p className="text-xs text-red-600">
+                        To prevent duplicate dispensing, medicines and notes are locked.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                </div>
 
               {/* Medication Selection List */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -129,16 +157,17 @@ const DispensePortal = () => {
                   {prescription?.medicines?.map((med, idx) => (
                     <div
                       key={idx}
-                      onClick={() => handleToggleMed(idx)}
-                      className={`cursor-pointer p-4 rounded-xl border transition-all flex items-center justify-between ${
+                      onClick={() => !isDispensed && handleToggleMed(idx)}
+                      className={`p-4 rounded-xl border transition-all flex items-center justify-between ${
                         dispensedItems[idx]
                           ? 'bg-sky-50/60 border-sky-300'
-                          : 'bg-slate-50 border-slate-200 opacity-60'
-                      }`}
+                          : 'bg-slate-50 border-slate-200'
+                      }${isDispensed ? " cursor-not-allowed opacity-70" : " cursor-pointer"}`}
                     >
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
+                          disabled={isDispensed}
                           checked={!!dispensedItems[idx]}
                           onChange={() => {}}
                           className="h-4 w-4 rounded text-sky-600 focus:ring-sky-500"
@@ -156,20 +185,33 @@ const DispensePortal = () => {
                 <div className="mt-6">
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Pharmacy Dispensing Notes</label>
                   <textarea
+                    readOnly={isDispensed}
                     rows={2}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="e.g. Batch #4092, substituted brand with patient consent..."
-                    className="w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-sky-500 focus:outline-none"
+                    className={`w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-sky-500 focus:outline-none ${
+                      isDispensed ? "bg-slate-100 cursor-not-allowed" : ""
+                    }`}
                   ></textarea>
                 </div>
 
                 <button
                   onClick={handleConfirmDispense}
-                  disabled={dispensing || prescription?.status === 'DISPENSED'}
-                  className="w-full mt-6 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm"
+                  disabled={dispensing || isDispensed}
+                  className={`w-full mt-6 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-semibold text-white transition-colors shadow-sm ${
+                    isDispensed
+                      ? "bg-slate-400 cursor-not-allowed"
+                      : "bg-emerald-600 hover:bg-emerald-700"
+                  }`}
                 >
-                  <PackageCheck className="h-4 w-4" /> {dispensing ? 'Processing Dispensation...' : 'Confirm & Mark Dispensed'}
+                  <PackageCheck className="h-4 w-4" />
+
+                  {isDispensed
+                    ? "Already Dispensed ✓"
+                    : dispensing
+                    ? "Processing Dispensation..."
+                    : "Confirm & Mark Dispensed"}
                 </button>
               </div>
             </div>
