@@ -86,7 +86,7 @@ exports.getPatientProfile = async (req, res) => {
 };
 exports.updatePatientProfile = async (req, res) => {
   try {
-    const { bloodGroup, phone, age } = req.body;
+    const {name, bloodGroup, phone, age } = req.body;
 
     // Update PatientProfile
     let profile = await PatientProfile.findOne({ user: req.user._id });
