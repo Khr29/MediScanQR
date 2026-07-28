@@ -108,7 +108,7 @@ const PharmacyDashboard = () => {
                       <td className="px-6 py-4 text-xs text-slate-500">{new Date(rx.updatedAt || Date.now()).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-xs">
                         <Link
-                          to={`/pharmacy/dispense/${rx.prescriptionId || rx._id}`}
+                          to={`/pharmacy/history/${rx.prescriptionId || rx._id}`}
                           className="font-semibold text-sky-600 hover:underline"
                         >
                           Process Dispense

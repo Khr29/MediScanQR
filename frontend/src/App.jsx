@@ -244,6 +244,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/pharmacy/history/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={["PHARMACY"]}>
+                    <PrescriptionViewer />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/admin/analytics"
               element={
