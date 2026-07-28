@@ -12,6 +12,11 @@ export const verifyPrescription = async (rxId) => {
   return response.data;
 };
 
+export const getPrescriptionDetails = async (rxId) => {
+  const response = await api.get(`/pharmacy/prescription/${rxId}`);
+  return response.data;
+};
+
 // alias if another component uses it
 export const verifyQR = verifyPrescription;
 

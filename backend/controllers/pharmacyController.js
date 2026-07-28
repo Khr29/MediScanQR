@@ -5,34 +5,41 @@ const ScanLog = require("../models/ScanLog");
 exports.verifyPrescription = async (req, res) => {
   try {
     const { rxId } = req.params;
-    const prescription = await Prescription.findOne({ prescriptionId: rxId });
 
-    // Log scan of an already dispensed prescription
-    if (prescription && prescription.status === "DISPENSED") {
+    const prescription = await Prescription.findOne({
+      prescriptionId: rxId,
+    });
+
+    if (!prescription) {
+      return res.status(404).json({
+        message: "Invalid or non-existent prescription ID.",
+      });
+    }
+
+    // Already Dispensed
+    if (prescription.status === "DISPENSED") {
       await ScanLog.create({
-        rxId,
+        rxId: prescription.prescriptionId,
+        patientName: prescription.patientName,
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Already Dispensed",
       });
+
+      return res.status(400).json({
+        message: "ALERT: This prescription has already been dispensed.",
+        prescription,
+      });
     }
 
-    if (!prescription) {
-      return res
-        .status(404)
-        .json({ message: "Invalid or non-existent prescription ID." });
-    }
-
-    // Auto-expiry check
-    if (
-      prescription.status !== "DISPENSED" &&
-      new Date() > new Date(prescription.expiresAt)
-    ) {
+    // Auto Expiry
+    if (new Date() > new Date(prescription.expiresAt)) {
       prescription.status = "EXPIRED";
       await prescription.save();
 
       await ScanLog.create({
-        rxId,
+        rxId: prescription.prescriptionId,
+        patientName: prescription.patientName,
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Expired Prescription",
@@ -46,7 +53,9 @@ exports.verifyPrescription = async (req, res) => {
 
     return res.status(200).json(prescription);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
@@ -54,15 +63,22 @@ exports.verifyPrescription = async (req, res) => {
 exports.dispensePrescription = async (req, res) => {
   try {
     const { rxId } = req.params;
-    const prescription = await Prescription.findOne({ prescriptionId: rxId });
+
+    const prescription = await Prescription.findOne({
+      prescriptionId: rxId,
+    });
 
     if (!prescription) {
-      return res.status(404).json({ message: "Prescription not found." });
+      return res.status(404).json({
+        message: "Prescription not found.",
+      });
     }
 
+    // Prevent double dispensing
     if (prescription.status === "DISPENSED") {
       await ScanLog.create({
-        rxId,
+        rxId: prescription.prescriptionId,
+        patientName: prescription.patientName,
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Already Dispensed",
@@ -75,30 +91,31 @@ exports.dispensePrescription = async (req, res) => {
       });
     }
 
+    // Prevent dispensing expired prescriptions
     if (prescription.status === "EXPIRED") {
-      return res
-        .status(400)
-        .json({ message: "Cannot dispense an expired prescription." });
+      return res.status(400).json({
+        message: "Cannot dispense an expired prescription.",
+      });
     }
 
+    // Dispense prescription
     prescription.status = "DISPENSED";
     prescription.dispensedAt = new Date();
-    prescription.dispensedBy = req.user ? req.user.name : "Pharmacy";
+    prescription.dispensedBy = req.user?.name || "Pharmacy";
 
     await prescription.save();
 
-    console.log("Creating ScanLog...");
-
+    // Create audit log
     try {
-      const log = await ScanLog.create({
-        rxId,
+      await ScanLog.create({
+        rxId: prescription.prescriptionId,
+        patientName: prescription.patientName,
         pharmacist: req.user?.name || "Unknown",
         result: "SUCCESS",
         reason: "Medicine Dispensed",
       });
 
-      console.log("✅ ScanLog created successfully:");
-      console.log(log);
+      console.log("✅ ScanLog created successfully");
     } catch (err) {
       console.error("❌ Failed to create ScanLog:");
       console.error(err);
@@ -109,7 +126,9 @@ exports.dispensePrescription = async (req, res) => {
       prescription,
     });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
 // @desc Pharmacy Dashboard Statistics
@@ -183,9 +202,7 @@ exports.getPrescriptionDetails = async (req, res) => {
 
     const prescription = await Prescription.findOne({
       prescriptionId: rxId,
-    })
-      .populate("patient", "name email")
-      .populate("doctor", "name");
+    }).populate("patient", "name email");
 
     if (!prescription) {
       return res.status(404).json({

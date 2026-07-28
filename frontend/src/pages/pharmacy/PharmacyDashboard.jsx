@@ -86,12 +86,6 @@ const PharmacyDashboard = () => {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-bold text-slate-800">Recent Verification Scans</h2>
-                  <Link
-                    to="/pharmacy/history"
-                    className="text-xs font-semibold text-sky-600 hover:underline flex items-center gap-1"
-                  >
-                    View History <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
                 </div>
 
                 <Table

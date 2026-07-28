@@ -2,23 +2,39 @@ const mongoose = require("mongoose");
 
 const ScanLogSchema = new mongoose.Schema(
   {
-    rxId: String,
+    rxId: {
+      type: String,
+      required: true,
+    },
 
-    pharmacist: String,
+    patientName: {
+      type: String,
+    },
+
+    pharmacist: {
+      type: String,
+      required: true,
+    },
 
     result: {
       type: String,
       enum: ["SUCCESS", "REJECTED"],
+      required: true,
     },
 
-    reason: String,
+    reason: {
+      type: String,
+      required: true,
+    },
 
     scannedAt: {
       type: Date,
       default: Date.now,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
 module.exports = mongoose.model("ScanLog", ScanLogSchema);

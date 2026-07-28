@@ -125,8 +125,8 @@ const DispensePortal = () => {
                       Prescribing Doctor
                     </span>
                     <span className="font-bold text-slate-800">
-                      {prescription?.doctor?.name
-                        ? `Dr. ${prescription.doctor.name}`
+                      {prescription?.doctorName
+                        ? `Dr. ${prescription.doctorName}`
                         : "Authorized Physician"}
                     </span>
                   </div>

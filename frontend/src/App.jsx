@@ -35,6 +35,7 @@ import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
 import ScanPrescription from './pages/pharmacy/ScanPrescription';
 import DispensePortal from './pages/pharmacy/DispensePortal';
 import ScanHistory from './pages/pharmacy/ScanHistory';
+import PrescriptionViewer from "./pages/pharmacy/PrescriptionViewer";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
