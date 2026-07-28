@@ -24,6 +24,7 @@ const DispensePortal = () => {
       try {
         const response = await verifyPrescription(id);
         const rx = response.prescription || response;
+        console.log("Prescription:", rx);
         setPrescription(rx);
 
         // Default all medicines as selected for dispensation
@@ -234,6 +235,61 @@ const DispensePortal = () => {
               </div>
             </div>
           )}
+
+          {showDispenseModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+
+      <div className="flex items-center gap-3">
+        <AlertTriangle className="h-8 w-8 text-red-600" />
+        <h2 className="text-lg font-bold text-slate-900">
+          Prescription Already Dispensed
+        </h2>
+      </div>
+
+      <p className="mt-4 text-sm text-slate-600">
+        This prescription has already been dispensed and cannot be dispensed again.
+      </p>
+
+      <div className="mt-5 rounded-xl bg-slate-50 p-4 space-y-3">
+
+        <div className="flex justify-between text-sm">
+          <span className="font-semibold">Patient</span>
+          <span>
+            {prescription?.patientName ||
+              prescription?.patient?.name ||
+              "N/A"}
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm">
+          <span className="font-semibold">Dispensed On</span>
+          <span>
+            {prescription?.dispensedAt
+              ? new Date(prescription.dispensedAt).toLocaleString()
+              : "N/A"}
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm">
+          <span className="font-semibold">Status</span>
+          <span className="font-bold text-red-600">
+            ALREADY DISPENSED
+          </span>
+        </div>
+
+      </div>
+
+      <button
+        onClick={() => setShowDispenseModal(false)}
+        className="mt-6 w-full rounded-xl bg-red-600 py-3 font-semibold text-white hover:bg-red-700"
+      >
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
         </main>
       </div>
     </div>
