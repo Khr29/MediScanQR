@@ -2,6 +2,7 @@ const Prescription = require("../models/Prescription");
 const PatientProfile = require("../models/PatientProfile");
 const User = require("../models/User");
 const { generateQRCode } = require("../utils/qrGenerator");
+const ScanLog = require("../models/ScanLog");
 
 // @desc Create a new prescription
 exports.createPrescription = async (req, res) => {
