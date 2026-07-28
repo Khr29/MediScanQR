@@ -26,10 +26,18 @@ exports.getPrescriptionById = async (req, res) => {
     });
 
     if (!prescription) {
-      return res.status(404).json({
-        message: "Prescription not found.",
-      });
-    }
+
+  await ScanLog.create({
+    rxId,
+    pharmacist: req.user?.name || "Unknown",
+    result: "REJECTED",
+    reason: "Invalid QR",
+  });
+
+  return res
+    .status(404)
+    .json({ message: "Invalid or non-existent prescription ID." });
+}
 
     return res.status(200).json(prescription);
   } catch (error) {

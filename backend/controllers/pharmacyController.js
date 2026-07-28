@@ -1,4 +1,5 @@
 const Prescription = require("../models/Prescription");
+const ScanLog = require("../models/ScanLog");
 
 // @desc Verify prescription by RX ID or scanned QR payload
 exports.verifyPrescription = async (req, res) => {
@@ -19,6 +20,14 @@ exports.verifyPrescription = async (req, res) => {
     ) {
       prescription.status = "EXPIRED";
       await prescription.save();
+
+      await ScanLog.create({
+        rxId,
+        pharmacist: req.user?.name || "Unknown",
+        result: "REJECTED",
+        reason: "Expired Prescription",
+      });
+
       return res.status(400).json({
         message: "ALERT: This prescription has EXPIRED.",
         prescription,
@@ -42,8 +51,17 @@ exports.dispensePrescription = async (req, res) => {
     }
 
     if (prescription.status === "DISPENSED") {
+      await ScanLog.create({
+        rxId,
+        pharmacist: req.user?.name || "Unknown",
+        result: "REJECTED",
+        reason: "Already Dispensed",
+      });
+
       return res.status(400).json({
-        message: `ALERT: Double Dispense Blocked! Dispensed on ${new Date(prescription.dispensedAt).toLocaleString()}`,
+        message: `ALERT: Double Dispense Blocked! Dispensed on ${new Date(
+          prescription.dispensedAt,
+        ).toLocaleString()}`,
       });
     }
 

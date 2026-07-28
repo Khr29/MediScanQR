@@ -68,6 +68,13 @@ exports.createPrescription = async (req, res) => {
 
     await prescription.save();
 
+    await ScanLog.create({
+      rxId,
+      pharmacist: req.user?.name || "Unknown",
+      result: "SUCCESS",
+      reason: "Medicine Dispensed",
+    });
+
     return res.status(201).json({
       message: "Prescription generated successfully.",
       prescription,
