@@ -111,7 +111,7 @@ const PharmacyDashboard = () => {
                           to={`/pharmacy/history/${rx.prescriptionId || rx._id}`}
                           className="font-semibold text-sky-600 hover:underline"
                         >
-                          Process Dispense
+                          View Details
                         </Link>
                       </td>
                     </tr>

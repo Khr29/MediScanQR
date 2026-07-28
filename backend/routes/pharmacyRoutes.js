@@ -5,6 +5,7 @@ const {
   dispensePrescription,
   getPharmacyStats,
   getDispenseHistory,
+  getPrescriptionDetails,
 } = require("../controllers/pharmacyController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
@@ -24,6 +25,13 @@ router.post(
   verifyToken,
   requireRole(roles.PHARMACY),
   dispensePrescription,
+);
+
+router.get(
+  "/prescription/:rxId",
+  verifyToken,
+  requireRole(roles.PHARMACY),
+  getPrescriptionDetails,
 );
 
 router.get(

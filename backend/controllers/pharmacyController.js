@@ -175,3 +175,29 @@ exports.getDispenseHistory = async (req, res) => {
     });
   }
 };
+
+// @desc Get Prescription Details
+exports.getPrescriptionDetails = async (req, res) => {
+  try {
+    const { rxId } = req.params;
+
+    const prescription = await Prescription.findOne({
+      prescriptionId: rxId,
+    })
+      .populate("patient", "name email")
+      .populate("doctor", "name");
+
+    if (!prescription) {
+      return res.status(404).json({
+        message: "Prescription not found.",
+      });
+    }
+
+    res.json(prescription);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch prescription details.",
+    });
+  }
+};
