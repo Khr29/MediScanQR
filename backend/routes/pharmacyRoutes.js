@@ -18,8 +18,13 @@ router.get(
   getPharmacyStats,
 );
 
-// Verification can be called by scanning (Public or Pharmacy)
-router.get("/verify/:rxId", verifyPrescription);
+// Verification (Pharmacy only)
+router.get(
+  "/verify/:rxId",
+  verifyToken,
+  requireRole(roles.PHARMACY),
+  verifyPrescription,
+);
 router.post(
   "/dispense/:rxId",
   verifyToken,

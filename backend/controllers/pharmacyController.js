@@ -6,6 +6,8 @@ exports.verifyPrescription = async (req, res) => {
   try {
     const { rxId } = req.params;
 
+    console.log("User:", req.user);
+
     const prescription = await Prescription.findOne({
       prescriptionId: rxId,
     });
@@ -64,6 +66,10 @@ exports.dispensePrescription = async (req, res) => {
   try {
     const { rxId } = req.params;
 
+    console.log("=== DISPENSE REQUEST ===");
+    console.log("Logged in user:", req.user.name);
+    console.log("Role:", req.user.role);
+
     const prescription = await Prescription.findOne({
       prescriptionId: rxId,
     });
@@ -105,9 +111,13 @@ exports.dispensePrescription = async (req, res) => {
 
     await prescription.save();
 
+    console.log("Prescription:", prescription);
+    console.log("patient:", prescription.patient);
+    console.log("patientName:", prescription.patientName);
+
     // Create audit log
     try {
-      await ScanLog.create({
+      const log = await ScanLog.create({
         rxId: prescription.prescriptionId,
         patientName: prescription.patientName,
         pharmacist: req.user?.name || "Unknown",
@@ -116,6 +126,7 @@ exports.dispensePrescription = async (req, res) => {
       });
 
       console.log("✅ ScanLog created successfully");
+      console.log("Created ScanLog:", log);
     } catch (err) {
       console.error("❌ Failed to create ScanLog:");
       console.error(err);
@@ -178,14 +189,10 @@ exports.getPharmacyStats = async (req, res) => {
     });
   }
 };
-// @desc Get dispense history
+// @desc Get Audit Log (All Scan Attempts)
 exports.getDispenseHistory = async (req, res) => {
   try {
-    const history = await Prescription.find({
-      status: "DISPENSED",
-    })
-      .populate("patient", "name email")
-      .sort({ dispensedAt: -1 });
+    const history = await ScanLog.find().sort({ scannedAt: -1 });
 
     res.status(200).json(history);
   } catch (error) {
