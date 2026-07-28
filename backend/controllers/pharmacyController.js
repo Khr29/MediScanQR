@@ -77,6 +77,23 @@ exports.dispensePrescription = async (req, res) => {
 
     await prescription.save();
 
+    console.log("Creating ScanLog...");
+
+    try {
+      const log = await ScanLog.create({
+        rxId,
+        pharmacist: req.user?.name || "Unknown",
+        result: "SUCCESS",
+        reason: "Medicine Dispensed",
+      });
+
+      console.log("✅ ScanLog created successfully:");
+      console.log(log);
+    } catch (err) {
+      console.error("❌ Failed to create ScanLog:");
+      console.error(err);
+    }
+
     return res.status(200).json({
       message: "Medicine dispensed successfully. Prescription locked.",
       prescription,
