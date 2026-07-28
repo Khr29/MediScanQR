@@ -4,6 +4,7 @@ const {
   verifyPrescription,
   dispensePrescription,
   getPharmacyStats,
+  getDispenseLogs,
 } = require("../controllers/pharmacyController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
@@ -23,6 +24,13 @@ router.post(
   verifyToken,
   requireRole(roles.PHARMACY),
   dispensePrescription,
+);
+
+router.get(
+  "/dispense-logs",
+  verifyToken,
+  requireRole(roles.PHARMACY),
+  getDispenseLogs,
 );
 
 module.exports = router;
