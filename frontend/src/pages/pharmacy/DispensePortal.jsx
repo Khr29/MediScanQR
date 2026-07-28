@@ -16,6 +16,7 @@ const DispensePortal = () => {
   const [dispensing, setDispensing] = useState(false);
   const [dispensedItems, setDispensedItems] = useState({});
   const [notes, setNotes] = useState('');
+  const [showDispenseModal, setShowDispenseModal] = useState(false);
   const isDispensed = prescription?.status === "DISPENSED";
 
   useEffect(() => {
@@ -207,18 +208,25 @@ const DispensePortal = () => {
                 </div>
 
                 <button
-                  onClick={handleConfirmDispense}
-                  disabled={dispensing || isDispensed}
+                  onClick={() => {
+                    if (isDispensed) {
+                      setShowDispenseModal(true);
+                      return;
+                    }
+
+                    handleConfirmDispense();
+                  }}
+                  disabled={dispensing}
                   className={`w-full mt-6 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-semibold text-white transition-colors shadow-sm ${
                     isDispensed
-                      ? "bg-slate-400 cursor-not-allowed"
+                      ? "bg-red-600 hover:bg-red-700"
                       : "bg-emerald-600 hover:bg-emerald-700"
                   }`}
                 >
                   <PackageCheck className="h-4 w-4" />
 
                   {isDispensed
-                    ? "Already Dispensed ✓"
+                    ? "View Dispense Details"
                     : dispensing
                     ? "Processing Dispensation..."
                     : "Confirm & Mark Dispensed"}

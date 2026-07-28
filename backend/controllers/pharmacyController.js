@@ -7,6 +7,16 @@ exports.verifyPrescription = async (req, res) => {
     const { rxId } = req.params;
     const prescription = await Prescription.findOne({ prescriptionId: rxId });
 
+    // Log scan of an already dispensed prescription
+    if (prescription && prescription.status === "DISPENSED") {
+      await ScanLog.create({
+        rxId,
+        pharmacist: req.user?.name || "Unknown",
+        result: "REJECTED",
+        reason: "Already Dispensed",
+      });
+    }
+
     if (!prescription) {
       return res
         .status(404)
