@@ -58,7 +58,7 @@ const PharmacyDashboard = () => {
                       <QrCode className="h-5 w-5" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 mt-2">{stats?.todayScans || 0}</p>
+                  <p className="text-2xl font-bold text-slate-900 mt-2">{stats?.todaysScans || 0}</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -78,7 +78,7 @@ const PharmacyDashboard = () => {
                       <ShieldCheck className="h-5 w-5" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 mt-2">{stats?.rejectedCount || 0}</p>
+                  <p className="text-2xl font-bold text-slate-900 mt-2">{stats?.invalidRejected || 0}</p>
                 </div>
               </div>
 

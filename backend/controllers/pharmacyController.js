@@ -113,25 +113,35 @@ exports.getPharmacyStats = async (req, res) => {
       status: "PENDING",
     });
 
-    const expiredPrescriptions = await Prescription.countDocuments({
-      status: "EXPIRED",
-    });
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const dispensedToday = await Prescription.countDocuments({
-      status: "DISPENSED",
-      dispensedAt: {
+    // Count ALL scans today (SUCCESS + REJECTED)
+    const todaysScans = await ScanLog.countDocuments({
+      createdAt: {
         $gte: today,
       },
     });
 
+    // Count only rejected scans
+    const invalidRejected = await ScanLog.countDocuments({
+      result: "REJECTED",
+    });
+
+    // Recent dispensed prescriptions
+    const recentScans = await Prescription.find({
+      status: "DISPENSED",
+    })
+      .populate("patient", "name email")
+      .sort({ updatedAt: -1 })
+      .limit(5);
+
     res.status(200).json({
       totalDispensed,
       pendingPrescriptions,
-      expiredPrescriptions,
-      dispensedToday,
+      todaysScans,
+      invalidRejected,
+      recentScans,
     });
   } catch (error) {
     res.status(500).json({
