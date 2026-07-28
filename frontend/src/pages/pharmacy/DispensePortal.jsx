@@ -5,7 +5,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Loader from '../../components/common/Loader';
 import Badge from '../../components/common/Badge';
 import { verifyPrescription, dispensePrescription } from '../../services/pharmacyService';
-import { CheckCircle, AlertTriangle, Pill, ShieldCheck, PackageCheck, User } from 'lucide-react';
+import { AlertTriangle, Pill, ShieldCheck, PackageCheck } from "lucide-react";
 
 const DispensePortal = () => {
   const { id } = useParams();
@@ -142,6 +142,16 @@ const DispensePortal = () => {
                       <p className="text-xs text-red-600">
                         To prevent duplicate dispensing, medicines and notes are locked.
                       </p>
+
+                      {prescription?.dispensedAt && (
+                        <p className="mt-3 text-xs font-semibold text-red-700">
+                          Dispensed on:{" "}
+                          {new Date(prescription.dispensedAt).toLocaleString("en-GB", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
