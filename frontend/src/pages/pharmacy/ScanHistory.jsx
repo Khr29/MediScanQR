@@ -14,15 +14,19 @@ const ScanHistory = () => {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      try {
-        const data = await getDispensedHistory();
-        setHistory(data);
-      } catch (err) {
-        console.error("Error fetching audit log:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    const data = await getDispensedHistory();
+
+    console.log("First record:", data[0]);
+    console.log("All records:", data);
+
+    setHistory(data);
+  } catch (err) {
+    console.error("Error fetching audit log:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchHistory();
   }, []);

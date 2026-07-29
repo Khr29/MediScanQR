@@ -28,23 +28,44 @@ const DispensePortal = () => {
         setPrescription(rx);
 
         // Default all medicines as selected for dispensation
-        const initialMap = {};
-        rx.medicines?.forEach((med, idx) => {
-          initialMap[idx] = true;
-        });
-        setDispensedItems(initialMap);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Invalid or revoked prescription code.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchAndVerify();
-  }, [id]);
+const initialMap = {};
+rx.medicines?.forEach((med, idx) => {
+  initialMap[idx] = true;
+});
+setDispensedItems(initialMap);
 
-  const handleToggleMed = (index) => {
-    setDispensedItems({ ...dispensedItems, [index]: !dispensedItems[index] });
-  };
+} catch (err) {
+  const data = err.response?.data;
+
+  // If backend returned the prescription (e.g. Already Dispensed),
+  // keep showing its details.
+  if (data?.prescription) {
+    setPrescription(data.prescription);
+
+    const initialMap = {};
+    data.prescription.medicines?.forEach((med, idx) => {
+      initialMap[idx] = true;
+    });
+    setDispensedItems(initialMap);
+  }
+
+  setError(data?.message || "Invalid or revoked prescription code.");
+ } finally {
+  setLoading(false);
+}
+};
+
+if (id) {
+  fetchAndVerify();
+}
+}, [id]);
+
+const handleToggleMed = (index) => {
+  setDispensedItems({
+    ...dispensedItems,
+    [index]: !dispensedItems[index],
+  });
+};
 
   const handleConfirmDispense = async () => {
     setDispensing(true);
@@ -81,7 +102,7 @@ const DispensePortal = () => {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-8 max-w-4xl mx-auto">
-          {error ? (
+          {error && !prescription ? (
             <div className="rounded-2xl bg-white p-8 border border-rose-200 shadow-sm text-center">
               <AlertTriangle className="mx-auto h-12 w-12 text-rose-500 mb-3" />
               <h2 className="text-lg font-bold text-slate-900">Prescription Verification Failed</h2>
