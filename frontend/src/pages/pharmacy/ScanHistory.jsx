@@ -116,19 +116,21 @@ const ScanHistory = () => {
                   >
                     {item.rawQRCode ? (
                       (() => {
-                       if (item.qrType === "Website") {
+                        // Medical prescription QR
+                        if (item.qrType === "Medical QR") {
+                          return "Prescription";
+                        }
+
+                        // Website QR
+                        if (item.qrType === "Website") {
                           try {
                             const host = new URL(item.rawQRCode).hostname;
 
-                            // Remove common prefixes
                             const cleanedHost = host
                               .replace(/^www\./, "")
                               .replace(/^en\./, "");
 
-                            // Split into parts
                             const parts = cleanedHost.split(".");
-
-                            // Use the second-level domain when possible
                             const domain =
                               parts.length >= 2 ? parts[parts.length - 2] : parts[0];
 

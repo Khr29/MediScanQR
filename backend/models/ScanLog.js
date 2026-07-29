@@ -14,7 +14,7 @@ const ScanLogSchema = new mongoose.Schema(
 
     qrType: {
       type: String,
-      enum: ["Website", "Text", "Wi-Fi", "Email", "Contact"],
+      enum: ["Medical QR", "Website", "Text", "Wi-Fi", "Email", "Contact"],
       default: null,
     },
 

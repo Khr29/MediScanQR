@@ -40,6 +40,8 @@ exports.verifyPrescription = async (req, res) => {
       await ScanLog.create({
         rxId: prescription.prescriptionId,
         patientName: prescription.patientName,
+        qrType: "Medical QR",
+        rawQRCode: "Prescription",
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Expired Prescription",
@@ -79,6 +81,8 @@ exports.dispensePrescription = async (req, res) => {
       await ScanLog.create({
         rxId: prescription.prescriptionId,
         patientName: prescription.patientName,
+        qrType: "Medical QR",
+        rawQRCode: "Prescription",
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Already Dispensed",
@@ -109,11 +113,12 @@ exports.dispensePrescription = async (req, res) => {
     await ScanLog.create({
       rxId: prescription.prescriptionId,
       patientName: prescription.patientName,
+      qrType: "Medical QR",
+      rawQRCode: "Prescription",
       pharmacist: req.user?.name || "Unknown",
       result: "SUCCESS",
       reason: "Medicine Dispensed",
     });
-
     return res.status(200).json({
       message: "Medicine dispensed successfully. Prescription locked.",
       prescription,
