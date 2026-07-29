@@ -6,13 +6,21 @@ const ScanLogSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
     rawQRCode: {
       type: String,
       default: null,
     },
 
+    qrType: {
+      type: String,
+      enum: ["Website", "Text", "Wi-Fi", "Email", "Contact"],
+      default: null,
+    },
+
     patientName: {
       type: String,
+      default: null,
     },
 
     pharmacist: {
@@ -24,16 +32,6 @@ const ScanLogSchema = new mongoose.Schema(
       type: String,
       enum: ["SUCCESS", "REJECTED"],
       required: true,
-    },
-
-    rawQRCode: {
-      type: String,
-      default: null,
-    },
-
-    qrType: {
-      type: String,
-      default: null,
     },
 
     reason: {
