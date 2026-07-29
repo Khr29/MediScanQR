@@ -26,6 +26,16 @@ const ScanLogSchema = new mongoose.Schema(
       required: true,
     },
 
+    rawQRCode: {
+      type: String,
+      default: null,
+    },
+
+    qrType: {
+      type: String,
+      default: null,
+    },
+
     reason: {
       type: String,
       required: true,

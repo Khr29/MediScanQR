@@ -39,7 +39,9 @@ const ScannerCamera = ({ onScanSuccess, onScanError }) => {
             await html5QrCode.stop();
 
             if (onScanSuccess) {
-              onScanSuccess(decodedText);
+              console.log("Calling onScanSuccess...");
+              await onScanSuccess(decodedText);
+              console.log("onScanSuccess finished.");
             }
           },
           (errorMessage) => {

@@ -31,11 +31,14 @@ const ScanHistory = () => {
     fetchHistory();
   }, []);
 
-  const filtered = history.filter(
-    (item) =>
-      item.rxId?.toLowerCase().includes(filter.toLowerCase()) ||
-      item.patientName?.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filtered =
+  filter.trim() === ""
+    ? history
+    : history.filter((item) =>
+        (item.rxId || "").toLowerCase().includes(filter.toLowerCase()) ||
+        (item.patientName || "").toLowerCase().includes(filter.toLowerCase()) ||
+        (item.rawQRCode || "").toLowerCase().includes(filter.toLowerCase())
+      );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -75,6 +78,8 @@ const ScanHistory = () => {
                 "Time",
                 "RX ID",
                 "Patient",
+                "QR Type",
+                "Scanned Content",
                 "Pharmacist",
                 "Result",
                 "Reason",
@@ -95,11 +100,32 @@ const ScanHistory = () => {
                   </td>
 
                   <td className="px-6 py-4 font-mono font-bold text-xs text-slate-800">
-                    {item.rxId}
+                   {item.rxId || "INVALID QR"}
                   </td>
 
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-800">
-                    {item.patientName || "Unknown"}
+                 <td className="px-6 py-4 text-xs font-semibold text-slate-800">
+                    {item.patientName || "N/A"}
+                  </td>
+                  <td className="px-6 py-4 text-xs">
+                    {item.qrType || "-"}
+                  </td>
+
+                  <td className="px-6 py-4 text-xs text-slate-700">
+                    {item.rawQRCode ? (
+                      item.qrType === "Website" ? (
+                        (() => {
+                          try {
+                            return new URL(item.rawQRCode).hostname;
+                          } catch {
+                            return item.rawQRCode;
+                          }
+                        })()
+                      ) : (
+                        item.rawQRCode
+                      )
+                    ) : (
+                      "-"
+                    )}
                   </td>
 
                   <td className="px-6 py-4 text-xs text-slate-700">

@@ -5,24 +5,39 @@ import Sidebar from '../../components/common/Sidebar';
 import ScannerCamera from '../../components/scanner/ScannerCamera';
 import QRUploader from '../../components/scanner/QRUploader';
 import { Camera, Upload, ShieldCheck } from 'lucide-react';
+import { logInvalidScan } from "../../services/pharmacyService";
 
 const ScanPrescription = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('camera'); // 'camera' or 'upload'
 
-  const handleScanSuccess = (decodedText) => {
+  const handleScanSuccess = async (decodedText) => {
+  console.log("handleScanSuccess called:", decodedText);
+
   try {
     const qrData = JSON.parse(decodedText);
 
-    if (!qrData.prescriptionId) {
-      navigate("/pharmacy/invalid-qr");
+    if (qrData.prescriptionId) {
+      navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
       return;
     }
-
-    navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
-  } catch {
-    navigate("/pharmacy/invalid-qr");
+  } catch (err) {
+    console.log("Not a JSON QR");
   }
+
+  // If we reach here, it's an invalid QR
+  console.log("Logging invalid QR...");
+
+  try {
+    const result = await logInvalidScan(decodedText);
+    console.log("Log result:", result);
+  } catch (err) {
+    console.error("Logging failed:", err.response?.status);
+    console.error(err.response?.data);
+    console.error(err);
+  }
+
+  navigate("/pharmacy/invalid-qr");
 };
 
   return (

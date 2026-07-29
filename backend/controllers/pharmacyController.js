@@ -213,9 +213,27 @@ exports.logInvalidScan = async (req, res) => {
   try {
     const { rawQRCode } = req.body;
 
-    await ScanLog.create({
+    let qrType = "Text";
+
+    if (rawQRCode.startsWith("WIFI:")) {
+      qrType = "Wi-Fi";
+    } else if (rawQRCode.startsWith("mailto:")) {
+      qrType = "Email";
+    } else if (rawQRCode.startsWith("BEGIN:VCARD")) {
+      qrType = "Contact";
+    } else {
+      try {
+        new URL(rawQRCode);
+        qrType = "Website";
+      } catch {
+        qrType = "Text";
+      }
+    }
+
+    const log = await ScanLog.create({
       rxId: null,
       rawQRCode,
+      qrType,
       pharmacist: req.user?.name || "Unknown",
       result: "REJECTED",
       reason: "Invalid QR Code",
@@ -223,6 +241,7 @@ exports.logInvalidScan = async (req, res) => {
 
     return res.status(201).json({
       message: "Invalid QR scan logged.",
+      log,
     });
   } catch (error) {
     return res.status(500).json({
