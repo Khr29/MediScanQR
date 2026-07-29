@@ -233,7 +233,7 @@ exports.logInvalidScan = async (req, res) => {
     const log = await ScanLog.create({
       rxId: null,
       rawQRCode,
-      qrType,
+      qrType, // <-- THIS IS THE IMPORTANT LINE
       pharmacist: req.user?.name || "Unknown",
       result: "REJECTED",
       reason: "Invalid QR Code",

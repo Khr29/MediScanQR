@@ -110,23 +110,34 @@ const ScanHistory = () => {
                     {item.qrType || "-"}
                   </td>
 
-                  <td className="px-6 py-4 text-xs text-slate-700">
+                  <td
+                    className="px-6 py-4 text-xs text-slate-700 max-w-[180px] truncate"
+                    title={item.rawQRCode || ""}
+                  >
                     {item.rawQRCode ? (
-                      item.qrType === "Website" ? (
-                        (() => {
+                      (() => {
+                        if (item.qrType === "Website") {
                           try {
-                            return new URL(item.rawQRCode).hostname;
+                            const host = new URL(item.rawQRCode).hostname;
+
+                            if (host.includes("wikipedia")) return "Wikipedia";
+                            if (host.includes("google")) return "Google";
+                            if (host.includes("youtube")) return "YouTube";
+
+                            return host;
                           } catch {
                             return item.rawQRCode;
                           }
-                        })()
-                      ) : (
-                        item.rawQRCode
-                      )
+                        }
+
+                        return item.rawQRCode.length > 35
+                          ? item.rawQRCode.substring(0, 35) + "..."
+                          : item.rawQRCode;
+                      })()
                     ) : (
                       "-"
                     )}
-                  </td>
+</td>
 
                   <td className="px-6 py-4 text-xs text-slate-700">
                     {item.pharmacist}
