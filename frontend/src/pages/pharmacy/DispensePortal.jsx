@@ -116,70 +116,130 @@ const handleToggleMed = (index) => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Rx Header */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                      <h1 className="text-lg font-bold text-slate-900">Verified Prescription</h1>
-                    </div>
-                    <p className="text-xs text-slate-500 font-mono mt-0.5">Rx ID: {prescription?.prescriptionId || id}</p>
-                  </div>
-                  <Badge variant={isDispensed ? "danger" : "info"}>
-                    {isDispensed ? "ALREADY DISPENSED" : prescription?.status}
-                  </Badge>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 text-xs text-slate-600 bg-slate-50 p-4 rounded-xl">
-                  <div>
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">
-                      Patient
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {prescription?.patient?.name || prescription?.patientName || "N/A"}
-                    </span>
-                  </div>
+    
+              {/* Prescription Header */}
+<div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
 
-                  <div>
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">
-                      Prescribing Doctor
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {prescription?.doctorName
-                        ? `Dr. ${prescription.doctorName}`
-                        : "Authorized Physician"}
-                    </span>
-                  </div>
-                </div>
+  {/* Top Banner */}
+  <div
+    className={`px-6 py-5 ${
+      isDispensed
+        ? "bg-red-50 border-b border-red-200"
+        : "bg-emerald-50 border-b border-emerald-200"
+    }`}
+  >
+    <div className="flex items-center justify-between">
 
-                {isDispensed && (
-                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+      <div className="flex items-center gap-3">
+        <div
+          className={`rounded-xl p-3 ${
+            isDispensed ? "bg-red-100" : "bg-emerald-100"
+          }`}
+        >
+          <ShieldCheck
+            className={`h-6 w-6 ${
+              isDispensed ? "text-red-600" : "text-emerald-600"
+            }`}
+          />
+        </div>
 
-                    <div>
-                      <p className="text-sm font-bold text-red-700">
-                        This prescription has already been dispensed.
-                      </p>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">
+            Verified Digital Prescription
+          </h1>
 
-                      <p className="text-xs text-red-600">
-                        To prevent duplicate dispensing, medicines and notes are locked.
-                      </p>
+          <p className="text-sm text-slate-500 font-mono mt-1">
+            {prescription?.prescriptionId || id}
+          </p>
+        </div>
+      </div>
 
-                      {prescription?.dispensedAt && (
-                        <p className="mt-3 text-xs font-semibold text-red-700">
-                          Dispensed on:{" "}
-                          {new Date(prescription.dispensedAt).toLocaleString("en-GB", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                </div>
+      <Badge variant={isDispensed ? "danger" : "info"}>
+        {isDispensed ? "ALREADY DISPENSED" : "READY TO DISPENSE"}
+      </Badge>
+    </div>
+  </div>
 
+  {/* Information Grid */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+
+    <div className="rounded-xl bg-slate-50 p-4 border">
+      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+        Patient
+      </p>
+
+      <p className="mt-2 text-lg font-bold text-slate-900">
+        {prescription?.patient?.name ||
+          prescription?.patientName ||
+          "N/A"}
+      </p>
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-4 border">
+      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+        Prescribing Doctor
+      </p>
+
+      <p className="mt-2 text-lg font-bold text-slate-900">
+        {prescription?.doctorName
+          ? `Dr. ${prescription.doctorName}`
+          : "Authorized Physician"}
+      </p>
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-4 border">
+      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+        Current Status
+      </p>
+
+      <p
+        className={`mt-2 text-lg font-bold ${
+          isDispensed ? "text-red-600" : "text-emerald-600"
+        }`}
+      >
+        {isDispensed ? "Dispensed" : "Pending"}
+      </p>
+    </div>
+  </div>
+
+  {isDispensed && (
+    <div className="mx-6 mb-6 rounded-xl border border-red-200 bg-red-50 p-5">
+
+      <div className="flex gap-4">
+
+        <AlertTriangle className="h-7 w-7 text-red-600 mt-1" />
+
+        <div>
+          <h3 className="font-bold text-red-700 text-base">
+            Prescription Already Dispensed
+          </h3>
+
+          <p className="mt-2 text-sm text-red-600">
+            This prescription has already been dispensed.
+            Medicines and dispensing notes have been locked to prevent
+            duplicate dispensing.
+          </p>
+
+          {prescription?.dispensedAt && (
+            <p className="mt-4 text-sm font-semibold text-red-700">
+              Dispensed on{" "}
+              {new Date(
+                prescription.dispensedAt
+              ).toLocaleString("en-GB", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </p>
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  )}
+
+</div>
               {/* Medication Selection List */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
