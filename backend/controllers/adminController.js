@@ -1,39 +1,149 @@
-const User = require('../models/User');
-const AuditLog = require('../models/AuditLog');
+const User = require("../models/User");
+const AuditLog = require("../models/AuditLog");
+const Prescription = require("../models/Prescription");
 
-// @desc Get all pending doctor & pharmacy approvals
-exports.getPendingApprovals = async (req, res) => {
+// ===============================
+// Dashboard Statistics
+// ===============================
+exports.getAdminStats = async (req, res) => {
   try {
-    const pendingUsers = await User.find({ isApproved: false }).select('-password');
-    return res.status(200).json(pendingUsers);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+    const totalDoctors = await User.countDocuments({ role: "DOCTOR" });
+    const totalPatients = await User.countDocuments({ role: "PATIENT" });
+    const totalPharmacies = await User.countDocuments({ role: "PHARMACY" });
+
+    const pendingDoctors = await User.countDocuments({
+      role: "DOCTOR",
+      isApproved: false,
+    });
+
+    const pendingPharmacies = await User.countDocuments({
+      role: "PHARMACY",
+      isApproved: false,
+    });
+
+    const totalPrescriptions = await Prescription.countDocuments();
+
+    const dispensedPrescriptions = await Prescription.countDocuments({
+      status: "DISPENSED",
+    });
+
+    res.json({
+      totalDoctors,
+      totalPatients,
+      totalPharmacies,
+      pendingDoctors,
+      pendingPharmacies,
+      totalPrescriptions,
+      dispensedPrescriptions,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc Approve or suspend a user account
-exports.toggleUserApproval = async (req, res) => {
+// ===============================
+// Pending Doctors
+// ===============================
+exports.getPendingDoctors = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { isApproved } = req.body;
+    const doctors = await User.find({
+      role: "DOCTOR",
+      isApproved: false,
+    }).select("-password");
 
-    const user = await User.findByIdAndUpdate(userId, { isApproved }, { new: true }).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    return res.status(200).json({ message: `User status updated to ${isApproved ? 'Approved' : 'Suspended'}`, user });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.json(doctors);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc Fetch all system audit logs
+// ===============================
+// Pending Pharmacies
+// ===============================
+exports.getPendingPharmacies = async (req, res) => {
+  try {
+    const pharmacies = await User.find({
+      role: "PHARMACY",
+      isApproved: false,
+    }).select("-password");
+
+    res.json(pharmacies);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Approve User
+// ===============================
+exports.approveUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isApproved: true },
+      { new: true },
+    ).select("-password");
+
+    res.json({
+      message: "User approved successfully.",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Reject User
+// ===============================
+exports.rejectUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isApproved: false },
+      { new: true },
+    ).select("-password");
+
+    res.json({
+      message: "User rejected.",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Audit Logs
+// ===============================
 exports.getAuditLogs = async (req, res) => {
   try {
     const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100);
-    return res.status(200).json(logs);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Analytics
+// ===============================
+exports.getSystemAnalytics = async (req, res) => {
+  try {
+    const analytics = {
+      totalUsers: await User.countDocuments(),
+      totalDoctors: await User.countDocuments({ role: "DOCTOR" }),
+      totalPatients: await User.countDocuments({ role: "PATIENT" }),
+      totalPharmacies: await User.countDocuments({ role: "PHARMACY" }),
+      totalPrescriptions: await Prescription.countDocuments(),
+      dispensedPrescriptions: await Prescription.countDocuments({
+        status: "DISPENSED",
+      }),
+    };
+
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

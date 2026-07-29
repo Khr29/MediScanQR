@@ -14,8 +14,10 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+    console.log("Fetching admin stats...");
       try {
         const data = await getAdminDashboardStats();
+        console.log(data);
         setStats(data);
       } catch (err) {
         console.error('Error loading admin stats:', err);
