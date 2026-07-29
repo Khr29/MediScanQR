@@ -12,17 +12,16 @@ const ScanPrescription = () => {
 
   const handleScanSuccess = (decodedText) => {
   try {
-    // Parse the QR JSON
     const qrData = JSON.parse(decodedText);
 
-    if (qrData.prescriptionId) {
-      navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
-    } else {
-      alert("Invalid QR Code.");
+    if (!qrData.prescriptionId) {
+      navigate("/pharmacy/invalid-qr");
+      return;
     }
-  } catch (err) {
-    // Fallback if QR contains only plain text
-    navigate(`/pharmacy/dispense/${decodedText}`);
+
+    navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
+  } catch {
+    navigate("/pharmacy/invalid-qr");
   }
 };
 

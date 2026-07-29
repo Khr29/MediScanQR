@@ -36,6 +36,7 @@ import ScanPrescription from './pages/pharmacy/ScanPrescription';
 import DispensePortal from './pages/pharmacy/DispensePortal';
 import ScanHistory from './pages/pharmacy/ScanHistory';
 import PrescriptionViewer from "./pages/pharmacy/PrescriptionViewer";
+import InvalidQRCode from "./pages/pharmacy/InvalidQRCode";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -203,6 +204,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/pharmacy/invalid-qr"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <InvalidQRCode />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
 
             {/* Admin Routes */}
             <Route
