@@ -116,15 +116,23 @@ const ScanHistory = () => {
                   >
                     {item.rawQRCode ? (
                       (() => {
-                        if (item.qrType === "Website") {
+                       if (item.qrType === "Website") {
                           try {
                             const host = new URL(item.rawQRCode).hostname;
 
-                            if (host.includes("wikipedia")) return "Wikipedia";
-                            if (host.includes("google")) return "Google";
-                            if (host.includes("youtube")) return "YouTube";
+                            // Remove common prefixes
+                            const cleanedHost = host
+                              .replace(/^www\./, "")
+                              .replace(/^en\./, "");
 
-                            return host;
+                            // Split into parts
+                            const parts = cleanedHost.split(".");
+
+                            // Use the second-level domain when possible
+                            const domain =
+                              parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+
+                            return domain.charAt(0).toUpperCase() + domain.slice(1);
                           } catch {
                             return item.rawQRCode;
                           }
