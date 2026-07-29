@@ -21,6 +21,8 @@ exports.verifyPrescription = async (req, res) => {
       await ScanLog.create({
         rxId: prescription.prescriptionId,
         patientName: prescription.patientName,
+        qrType: "Medical QR",
+        rawQRCode: "Prescription",
         pharmacist: req.user?.name || "Unknown",
         result: "REJECTED",
         reason: "Already Dispensed",

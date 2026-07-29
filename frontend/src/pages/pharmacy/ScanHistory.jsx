@@ -17,8 +17,6 @@ const ScanHistory = () => {
   try {
     const data = await getDispensedHistory();
 
-    console.log("First record:", data[0]);
-    console.log("All records:", data);
 
     setHistory(data);
   } catch (err) {
@@ -87,7 +85,7 @@ const ScanHistory = () => {
               emptyMessage="No audit records found."
             >
               {filtered.map((item) => (
-                <tr key={item._id} className="hover:bg-slate-50">
+                  <tr key={item._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 text-xs text-slate-600">
                     {new Date(item.scannedAt).toLocaleDateString()}
                   </td>
@@ -169,7 +167,7 @@ const ScanHistory = () => {
                     {item.reason}
                   </td>
                 </tr>
-              ))}
+            ))}
             </Table>
           )}
         </main>
