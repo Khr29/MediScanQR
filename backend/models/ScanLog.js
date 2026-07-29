@@ -4,7 +4,11 @@ const ScanLogSchema = new mongoose.Schema(
   {
     rxId: {
       type: String,
-      required: true,
+      default: null,
+    },
+    rawQRCode: {
+      type: String,
+      default: null,
     },
 
     patientName: {

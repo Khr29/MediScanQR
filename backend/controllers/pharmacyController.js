@@ -207,3 +207,26 @@ exports.getPrescriptionDetails = async (req, res) => {
     });
   }
 };
+
+// @desc Log Invalid QR Scan
+exports.logInvalidScan = async (req, res) => {
+  try {
+    const { rawQRCode } = req.body;
+
+    await ScanLog.create({
+      rxId: null,
+      rawQRCode,
+      pharmacist: req.user?.name || "Unknown",
+      result: "REJECTED",
+      reason: "Invalid QR Code",
+    });
+
+    return res.status(201).json({
+      message: "Invalid QR scan logged.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};

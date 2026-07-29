@@ -34,3 +34,11 @@ export const getDispenseHistory = async () => {
 
 export const getScanHistory = getDispenseHistory;
 export const getDispensedHistory = getDispenseHistory; // Added alias
+
+// Log invalid QR scans
+export const logInvalidScan = async (rawQRCode) => {
+  const response = await api.post("/pharmacy/log-invalid-scan", {
+    rawQRCode,
+  });
+  return response.data;
+};

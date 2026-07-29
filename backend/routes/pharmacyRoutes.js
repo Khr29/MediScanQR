@@ -6,6 +6,7 @@ const {
   getPharmacyStats,
   getDispenseHistory,
   getPrescriptionDetails,
+  logInvalidScan,
 } = require("../controllers/pharmacyController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
@@ -44,6 +45,12 @@ router.get(
   verifyToken,
   requireRole(roles.PHARMACY),
   getDispenseHistory,
+);
+router.post(
+  "/log-invalid-scan",
+  verifyToken,
+  requireRole(roles.PHARMACY),
+  logInvalidScan,
 );
 
 module.exports = router;
