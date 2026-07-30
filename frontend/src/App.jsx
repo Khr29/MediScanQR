@@ -44,6 +44,7 @@ import DoctorApprovals from './pages/admin/DoctorApprovals';
 import PharmacyApprovals from './pages/admin/PharmacyApprovals';
 import AuditLogs from './pages/admin/AuditLogs';
 import SystemAnalytics from './pages/admin/SystemAnalytics';
+import UserApprovals from './pages/admin/UserApprovals';
 
 function App() {
   return (
@@ -226,7 +227,18 @@ function App() {
                   </RoleGuard>
                 </ProtectedRoute>
               }
+              
             />
+            <Route
+              path="/admin/approvals"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <UserApprovals />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+              />
             <Route
               path="/admin/doctor-approvals"
               element={

@@ -63,7 +63,7 @@ const Login = () => {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="doctor@hospital.com"
+                placeholder=""
                 className="w-full rounded-lg border border-slate-300 pl-9 pr-12 py-2.5 text-xs focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
               />
             </div>
