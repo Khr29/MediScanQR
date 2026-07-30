@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Navbar from "../../components/common/Navbar";
 import Sidebar from "../../components/common/Sidebar";
-import DoctorApprovals from "./DoctorApprovals";
-import PharmacyApprovals from "./PharmacyApprovals";
+
+import DoctorApprovalTable from "../../components/admin/DoctorApprovalTable";
+import PharmacyApprovalTable from "../../components/admin/PharmacyApprovalTable";
 
 const UserApprovals = () => {
   const [activeTab, setActiveTab] = useState("doctors");
@@ -15,16 +16,18 @@ const UserApprovals = () => {
         <Sidebar />
 
         <main className="flex-1 p-8">
-          <h1 className="text-2xl font-bold">User Approvals</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            User Approvals
+          </h1>
 
-          <p className="text-slate-500 mb-6">
+          <p className="text-slate-500 mb-8">
             Review and approve pending doctor and pharmacy accounts.
           </p>
 
-          <div className="flex gap-3 mb-6">
+          <div className="flex gap-3 mb-8">
             <button
               onClick={() => setActiveTab("doctors")}
-              className={`px-5 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-lg transition ${
                 activeTab === "doctors"
                   ? "bg-sky-600 text-white"
                   : "bg-white border"
@@ -35,7 +38,7 @@ const UserApprovals = () => {
 
             <button
               onClick={() => setActiveTab("pharmacies")}
-              className={`px-5 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-lg transition ${
                 activeTab === "pharmacies"
                   ? "bg-sky-600 text-white"
                   : "bg-white border"
@@ -45,9 +48,9 @@ const UserApprovals = () => {
             </button>
           </div>
 
-          {activeTab === "doctors" && <DoctorApprovals />}
+          {activeTab === "doctors" && <DoctorApprovalTable />}
 
-        {activeTab === "pharmacies" && <PharmacyApprovals />}
+          {activeTab === "pharmacies" && <PharmacyApprovalTable />}
         </main>
       </div>
     </div>

@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
 const Prescription = require("../models/Prescription");
-const totalUsers = await User.countDocuments();
 
 // ===============================
 // Dashboard Statistics

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Table from "../../components/common/Table";
-import Loader from "../../components/common/Loader";
+import Table from "../common/Table";
+import Loader from "../common/Loader";
 import {
   getPendingPharmacies,
   approvePharmacy,

@@ -94,7 +94,7 @@ const Register = () => {
                     name: e.target.value,
                   })
                 }
-                placeholder="John Doe"
+                placeholder="Doctor name"
                 className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2 text-xs focus:border-sky-500 focus:outline-none"
               />
             </div>
