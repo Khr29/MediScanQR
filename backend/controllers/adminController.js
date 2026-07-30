@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
 const Prescription = require("../models/Prescription");
+const totalUsers = await User.countDocuments();
 
 // ===============================
 // Dashboard Statistics
@@ -27,14 +28,24 @@ exports.getAdminStats = async (req, res) => {
       status: "DISPENSED",
     });
 
+    const totalUsers = await User.countDocuments();
+
+    const recentLogs = await AuditLog.find().sort({ createdAt: -1 }).limit(5);
+
     res.json({
+      totalUsers,
+
       totalDoctors,
       totalPatients,
       totalPharmacies,
+
       pendingDoctors,
       pendingPharmacies,
+
       totalPrescriptions,
       dispensedPrescriptions,
+
+      recentLogs,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
