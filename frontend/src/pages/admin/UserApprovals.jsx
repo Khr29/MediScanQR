@@ -45,17 +45,9 @@ const UserApprovals = () => {
             </button>
           </div>
 
-          {activeTab === "doctors" && (
-            <div>
-              Doctor table goes here...
-            </div>
-          )}
+          {activeTab === "doctors" && <DoctorApprovals />}
 
-          {activeTab === "pharmacies" && (
-            <div>
-              Pharmacy table goes here...
-            </div>
-          )}
+        {activeTab === "pharmacies" && <PharmacyApprovals />}
         </main>
       </div>
     </div>
