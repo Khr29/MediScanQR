@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
 const Prescription = require("../models/Prescription");
+const logAction = require("../utils/auditLogger");
 
 // ===============================
 // Dashboard Statistics
@@ -94,6 +95,21 @@ exports.approveUser = async (req, res) => {
       { new: true },
     ).select("-password");
 
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    await logAction({
+      req,
+      user: req.user,
+      action: `APPROVE_${user.role}`,
+      target: `${user.name} (${user.role})`,
+      result: "SUCCESS",
+      details: `${user.role} account approved`,
+    });
+
     res.json({
       message: "User approved successfully.",
       user,
@@ -113,6 +129,21 @@ exports.rejectUser = async (req, res) => {
       { isApproved: false },
       { new: true },
     ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    await logAction({
+      req,
+      user: req.user,
+      action: `REJECT_${user.role}`,
+      target: `${user.name} (${user.role})`,
+      result: "SUCCESS",
+      details: `${user.role} account rejected`,
+    });
 
     res.json({
       message: "User rejected.",
