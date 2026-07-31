@@ -10,22 +10,20 @@ const logAction = async ({
 }) => {
   try {
     await AuditLog.create({
-      user: user?.name || "Unknown",
+      user: user?.name || user?.email || "Unknown",
       role: user?.role || "UNKNOWN",
-
       action,
       target,
       result,
       details,
-
       ipAddress:
+        req.ip ||
         req.headers["x-forwarded-for"] ||
         req.socket?.remoteAddress ||
-        req.ip ||
-        "Unknown",
+        "",
     });
   } catch (err) {
-    console.error("Audit Logger Error:", err.message);
+    console.error("Audit Log Error:", err.message);
   }
 };
 
