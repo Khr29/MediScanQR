@@ -40,7 +40,7 @@ exports.registerUser = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      password, // In production, hash with bcrypt
+      password, // hashed automatically by the User model's pre('save') hook
       role: role || roles.PATIENT,
       isApproved,
       licenseNumber,
@@ -91,7 +91,7 @@ exports.loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    if (!user || user.password !== password) {
+    if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         message: "Invalid email or password.",
       });
