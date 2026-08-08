@@ -49,4 +49,7 @@ const ScanLogSchema = new mongoose.Schema(
   },
 );
 
+ScanLogSchema.index({ rxId: 1 });
+ScanLogSchema.index({ scannedAt: -1 });
+
 module.exports = mongoose.model("ScanLog", ScanLogSchema);

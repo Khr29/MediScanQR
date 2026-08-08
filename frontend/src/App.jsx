@@ -23,6 +23,7 @@ import PatientManagement from './pages/doctor/PatientManagement';
 import CreatePrescription from './pages/doctor/CreatePrescription';
 import PrescriptionHistory from './pages/doctor/PrescriptionHistory';
 import DoctorAnalytics from './pages/doctor/DoctorAnalytics';
+import DoctorProfile from './pages/doctor/DoctorProfile';
 
 // Patient Pages
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -30,6 +31,7 @@ import MyPrescriptions from './pages/patient/MyPrescriptions';
 import PrescriptionDetail from './pages/patient/PrescriptionDetail';
 import MedicineHistory from './pages/patient/MedicineHistory';
 import PatientProfile from './pages/patient/PatientProfile';
+import PatientNotifications from './pages/patient/PatientNotifications';
 
 // Pharmacy Pages
 import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
@@ -38,15 +40,19 @@ import DispensePortal from './pages/pharmacy/DispensePortal';
 import ScanHistory from './pages/pharmacy/ScanHistory';
 import PrescriptionViewer from "./pages/pharmacy/PrescriptionViewer";
 import InvalidQRCode from "./pages/pharmacy/InvalidQRCode";
+import PharmacyProfile from "./pages/pharmacy/PharmacyProfile";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AllUsers from './pages/admin/AllUsers';
+import AdminUserDetail from './pages/admin/AdminUserDetail';
 import DoctorApprovals from './pages/admin/DoctorApprovals';
 import PharmacyApprovals from './pages/admin/PharmacyApprovals';
 import AuditLogs from './pages/admin/AuditLogs';
 import SystemAnalytics from './pages/admin/SystemAnalytics';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminPrescriptions from './pages/admin/AdminPrescriptions';
+import AdminPrescriptionDetail from './pages/admin/AdminPrescriptionDetail';
 
 function App() {
   return (
@@ -114,6 +120,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/doctor/profile"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['DOCTOR']}>
+                    <DoctorProfile />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Patient Routes */}
             <Route
@@ -152,6 +168,16 @@ function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['PATIENT']}>
                     <MedicineHistory />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/notifications"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <PatientNotifications />
                   </RoleGuard>
                 </ProtectedRoute>
               }
@@ -209,6 +235,16 @@ function App() {
               }
             />
             <Route
+              path="/pharmacy/profile"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PHARMACY']}>
+                    <PharmacyProfile />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/pharmacy/invalid-qr"
               element={
                 <ProtectedRoute>
@@ -238,6 +274,16 @@ function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <AllUsers />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminUserDetail />
                   </RoleGuard>
                 </ProtectedRoute>
               }
@@ -308,6 +354,26 @@ function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <AuditLogs />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/prescriptions"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminPrescriptions />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/prescriptions/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminPrescriptionDetail />
                   </RoleGuard>
                 </ProtectedRoute>
               }

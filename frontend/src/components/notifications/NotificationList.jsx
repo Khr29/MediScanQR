@@ -3,7 +3,7 @@ import { Check, Bell, X, Info } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 const NotificationList = ({ onClose }) => {
-  const { notifications, markAsRead } = useNotification();
+  const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotification();
 
   return (
     <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white p-4 shadow-xl z-50">
@@ -12,14 +12,21 @@ const NotificationList = ({ onClose }) => {
           <Bell className="h-4 w-4 text-sky-600" />
           <h3 className="text-sm font-bold text-slate-800">Notifications</h3>
         </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button onClick={markAllAsRead} className="text-[11px] font-semibold text-sky-600 hover:underline">
+              Mark all read
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="rounded p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mt-2 max-h-80 overflow-y-auto divide-y divide-slate-100">

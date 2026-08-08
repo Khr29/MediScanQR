@@ -13,7 +13,34 @@ connectDB();
 const app = express();
 
 // Global Middlewares
-app.use(cors());
+
+// Restrict cross-origin requests to the known frontend origin(s) instead of
+// allowing any site to call this API with a user's credentials.
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser tools (no Origin header, e.g. curl/Postman/health checks).
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
+);
+
+// Baseline security headers (no external dependency needed for this scale of app).
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
 app.use(express.json());
 
 // API Routes

@@ -22,6 +22,11 @@ export const getPrescriptionById = async (id) => {
 
 export const getPrescriptionDetails = getPrescriptionById;
 
+export const downloadPrescriptionPdf = async (id) => {
+  const response = await api.get(`/patient/prescriptions/${id}/pdf`, { responseType: 'blob' });
+  return response.data;
+};
+
 export const getMedicineHistory = async () => {
   const response = await api.get('/patient/medicine-history');
   return response.data;

@@ -1,13 +1,44 @@
 const User = require("../models/User");
 const DoctorProfile = require("../models/DoctorProfile");
 const PatientProfile = require("../models/PatientProfile");
+const PharmacyProfile = require("../models/PharmacyProfile");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const jwtConfig = require("../config/jwt");
 const roles = require("../config/roles");
 const { sendEmail } = require("../utils/sendEmail");
+const logAction = require("../utils/auditLogger");
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+// In-memory brute-force guard on login, keyed by email. Not distributed
+// (resets on server restart / doesn't share state across instances) but this
+// app runs as a single process, so it's a real, meaningful deterrent without
+// adding an external dependency.
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+const isRateLimited = (email) => {
+  const entry = loginAttempts.get(email);
+  if (!entry) return false;
+  if (Date.now() - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    loginAttempts.delete(email);
+    return false;
+  }
+  return entry.count >= MAX_LOGIN_ATTEMPTS;
+};
+
+const recordLoginFailure = (email) => {
+  const entry = loginAttempts.get(email);
+  if (!entry || Date.now() - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    loginAttempts.set(email, { count: 1, firstAttempt: Date.now() });
+  } else {
+    entry.count += 1;
+  }
+};
+
+const clearLoginAttempts = (email) => loginAttempts.delete(email);
 
 // Helper to generate JWT token
 const generateToken = (id) => {
@@ -68,7 +99,21 @@ exports.registerUser = async (req, res) => {
         chronicDiseases: [],
         emergencyContact: "",
       });
+    } else if (role === roles.PHARMACY) {
+      await PharmacyProfile.create({
+        user: newUser._id,
+        licenseNumber: licenseNumber || "PENDING",
+      });
     }
+
+    await logAction({
+      req,
+      user: newUser,
+      action: "REGISTER",
+      target: newUser.email,
+      result: "SUCCESS",
+      details: `Registered as ${newUser.role}`,
+    });
 
     return res.status(201).json({
       message: isApproved
@@ -93,9 +138,32 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (isRateLimited(email)) {
+      await logAction({
+        req,
+        user: { email },
+        action: "FAILED_LOGIN",
+        target: email,
+        result: "FAILED",
+        details: "Blocked - too many failed attempts",
+      });
+      return res.status(429).json({
+        message: "Too many failed login attempts. Please try again in 15 minutes.",
+      });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user || !(await user.comparePassword(password))) {
+      recordLoginFailure(email);
+      await logAction({
+        req,
+        user: user || { email },
+        action: "FAILED_LOGIN",
+        target: email,
+        result: "FAILED",
+        details: "Invalid credentials",
+      });
       return res.status(401).json({
         message: "Invalid email or password.",
       });
@@ -107,7 +175,16 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    clearLoginAttempts(email);
     const token = generateToken(user._id);
+
+    await logAction({
+      req,
+      user,
+      action: "LOGIN",
+      target: user.email,
+      result: "SUCCESS",
+    });
 
     return res.status(200).json({
       token,

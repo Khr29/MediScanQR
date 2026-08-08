@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import DoctorLayout from '../../layouts/DoctorLayout';
 import Table from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import ErrorState from '../../components/common/ErrorState';
-import { getDoctorPrescriptions } from '../../services/doctorService';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
+import { getDoctorPrescriptions, cancelPrescription, downloadPrescriptionPdf } from '../../services/doctorService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
-import { Search } from 'lucide-react';
+import { downloadBlob } from '../../utils/download';
+import { Search, Ban, Download } from 'lucide-react';
 
 const PrescriptionHistory = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +17,9 @@ const PrescriptionHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(searchParams.get('patient') || '');
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -31,6 +37,37 @@ const PrescriptionHistory = () => {
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    try {
+      await cancelPrescription(cancelTarget.prescriptionId);
+      setPrescriptions((prev) =>
+        prev.map((rx) =>
+          rx.prescriptionId === cancelTarget.prescriptionId ? { ...rx, status: 'CANCELLED' } : rx,
+        ),
+      );
+      toast.success(`${cancelTarget.prescriptionId} cancelled.`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel prescription.');
+    } finally {
+      setCancelling(false);
+      setCancelTarget(null);
+    }
+  };
+
+  const handleDownload = async (rx) => {
+    setDownloadingId(rx.prescriptionId);
+    try {
+      const blob = await downloadPrescriptionPdf(rx.prescriptionId);
+      downloadBlob(blob, `${rx.prescriptionId}.pdf`);
+    } catch (err) {
+      toast.error('Failed to download prescription PDF.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const filtered = prescriptions.filter(
     (rx) =>
@@ -58,7 +95,7 @@ const PrescriptionHistory = () => {
         <ErrorState message={error} onRetry={fetchHistory} />
       ) : (
         <Table
-          headers={['Rx ID', 'Patient', 'Medicines', 'Status', 'Date']}
+          headers={['Rx ID', 'Patient', 'Medicines', 'Status', 'Date', 'Actions']}
           emptyMessage="No prescription history found."
           loading={loading}
         >
@@ -71,10 +108,39 @@ const PrescriptionHistory = () => {
                 <Badge variant={getStatusVariant(rx.status)}>{rx.status}</Badge>
               </td>
               <td className="px-6 py-4 text-xs text-slate-500">{formatDate(rx.createdAt)}</td>
+              <td className="px-6 py-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDownload(rx)}
+                    disabled={downloadingId === rx.prescriptionId}
+                    className="flex items-center gap-1 rounded-lg bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  >
+                    <Download className="h-3.5 w-3.5" /> PDF
+                  </button>
+                  {rx.status === 'ACTIVE' && (
+                    <button
+                      onClick={() => setCancelTarget(rx)}
+                      className="flex items-center gap-1 rounded-lg bg-rose-50 text-rose-600 px-2.5 py-1 text-xs font-semibold hover:bg-rose-100 transition-colors"
+                    >
+                      <Ban className="h-3.5 w-3.5" /> Cancel
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </Table>
       )}
+
+      <ConfirmDialog
+        isOpen={!!cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        onConfirm={handleConfirmCancel}
+        title="Cancel prescription?"
+        message={`This will cancel ${cancelTarget?.prescriptionId} for ${cancelTarget?.patientName}. It can no longer be dispensed. This cannot be undone.`}
+        confirmLabel="Cancel prescription"
+        loading={cancelling}
+      />
     </DoctorLayout>
   );
 };

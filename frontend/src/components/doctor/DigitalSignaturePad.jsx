@@ -63,7 +63,7 @@ const DigitalSignaturePad = ({ onSave }) => {
     <div className="card p-4">
       <div className="flex items-center justify-between mb-2">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-          Digital Signature <span className="font-normal normal-case text-slate-400">(optional)</span>
+          Draw Signature
         </label>
         <button
           type="button"

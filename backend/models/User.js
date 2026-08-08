@@ -25,6 +25,9 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+UserSchema.index({ role: 1 });
+UserSchema.index({ isApproved: 1 });
+
 // Hash the password whenever it is set/changed - covers registration and
 // any future password-reset flow without controllers needing to remember to hash.
 // This hook is async (returns a Promise) - Mongoose does NOT inject a `next`

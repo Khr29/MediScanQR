@@ -1,6 +1,8 @@
 const Prescription = require("../models/Prescription");
 const PatientProfile = require("../models/PatientProfile");
 const User = require("../models/User");
+const { createPrescriptionPDF } = require("../utils/pdfGenerator");
+const logAction = require("../utils/auditLogger");
 
 // @desc Get active digital prescriptions for logged in patient
 exports.getMyPrescriptions = async (req, res) => {
@@ -38,6 +40,36 @@ exports.getPrescriptionById = async (req, res) => {
     });
   }
 };
+// @desc Download a PDF copy of one of the patient's own prescriptions
+exports.downloadPrescriptionPdf = async (req, res) => {
+  try {
+    const prescription = await Prescription.findOne({
+      _id: req.params.id,
+      patient: req.user._id,
+    });
+
+    if (!prescription) {
+      return res.status(404).json({ message: "Invalid or non-existent prescription ID." });
+    }
+
+    const pdfBuffer = await createPrescriptionPDF(prescription);
+
+    await logAction({
+      req,
+      user: req.user,
+      action: "DOWNLOAD_PRESCRIPTION",
+      target: `${prescription.prescriptionId} (${prescription.patientName})`,
+      result: "SUCCESS",
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${prescription.prescriptionId}.pdf"`);
+    return res.send(pdfBuffer);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc Flattened medicine history across all of the patient's prescriptions
 exports.getMedicineHistory = async (req, res) => {
   try {
@@ -76,7 +108,7 @@ exports.getPatientDashboard = async (req, res) => {
     const totalPrescriptions = prescriptions.length;
 
     const activePrescriptions = prescriptions.filter(
-      (p) => p.status !== "DISPENSED",
+      (p) => p.status === "ACTIVE",
     ).length;
 
     const dispensedPrescriptions = prescriptions.filter(

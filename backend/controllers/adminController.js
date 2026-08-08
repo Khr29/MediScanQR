@@ -1,7 +1,12 @@
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
 const Prescription = require("../models/Prescription");
+const ScanLog = require("../models/ScanLog");
+const DoctorProfile = require("../models/DoctorProfile");
+const PharmacyProfile = require("../models/PharmacyProfile");
 const logAction = require("../utils/auditLogger");
+const { createPrescriptionPDF } = require("../utils/pdfGenerator");
+const { notifyUser } = require("../utils/notify");
 
 // ===============================
 // Dashboard Statistics
@@ -32,6 +37,17 @@ exports.getAdminStats = async (req, res) => {
 
     const recentLogs = await AuditLog.find().sort({ createdAt: -1 }).limit(5);
 
+    // Real security signals from the last 24 hours - never fabricated.
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const failedLogins24h = await AuditLog.countDocuments({
+      action: "FAILED_LOGIN",
+      createdAt: { $gte: since24h },
+    });
+    const rejectedScans24h = await ScanLog.countDocuments({
+      result: "REJECTED",
+      scannedAt: { $gte: since24h },
+    });
+
     res.json({
       totalUsers,
 
@@ -46,6 +62,9 @@ exports.getAdminStats = async (req, res) => {
       dispensedPrescriptions,
 
       recentLogs,
+
+      failedLogins24h,
+      rejectedScans24h,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -96,6 +115,38 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // ===============================
+// User Detail (role-appropriate profile + recent activity)
+// ===============================
+exports.getUserDetail = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    let profile = null;
+    if (user.role === "DOCTOR") {
+      profile = await DoctorProfile.findOne({ user: user._id });
+    } else if (user.role === "PHARMACY") {
+      profile = await PharmacyProfile.findOne({ user: user._id });
+    } else if (user.role === "PATIENT") {
+      profile = await require("../models/PatientProfile").findOne({ user: user._id });
+    }
+
+    // Recent activity - matched by name/email since AuditLog.user stores whichever was
+    // available at the time, not a stable reference (never expose passwords/tokens here).
+    const identifierPattern = new RegExp(`^(${escapeRegex(user.name)}|${escapeRegex(user.email)})$`, "i");
+    const recentActivity = await AuditLog.find({ user: identifierPattern })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.json({ user, profile, recentActivity });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
 // Pending Doctors
 // ===============================
 exports.getPendingDoctors = async (req, res) => {
@@ -105,7 +156,22 @@ exports.getPendingDoctors = async (req, res) => {
       isApproved: false,
     }).select("-password");
 
-    res.json(doctors);
+    // Merge in specialization/hospital info from DoctorProfile - the User
+    // record alone doesn't carry it.
+    const profiles = await DoctorProfile.find({ user: { $in: doctors.map((d) => d._id) } });
+    const profileByUser = new Map(profiles.map((p) => [String(p.user), p]));
+
+    const merged = doctors.map((doc) => {
+      const profile = profileByUser.get(String(doc._id));
+      const obj = doc.toObject();
+      return {
+        ...obj,
+        specialization: profile?.specialization,
+        hospitalName: profile?.hospitalName,
+      };
+    });
+
+    res.json(merged);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -121,7 +187,21 @@ exports.getPendingPharmacies = async (req, res) => {
       isApproved: false,
     }).select("-password");
 
-    res.json(pharmacies);
+    // Merge in address/phone from PharmacyProfile - the User record alone doesn't carry it.
+    const profiles = await PharmacyProfile.find({ user: { $in: pharmacies.map((p) => p._id) } });
+    const profileByUser = new Map(profiles.map((p) => [String(p.user), p]));
+
+    const merged = pharmacies.map((pharmacy) => {
+      const profile = profileByUser.get(String(pharmacy._id));
+      const obj = pharmacy.toObject();
+      return {
+        ...obj,
+        address: profile?.address,
+        phone: profile?.phone,
+      };
+    });
+
+    res.json(merged);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -151,6 +231,13 @@ exports.approveUser = async (req, res) => {
       target: `${user.name} (${user.role})`,
       result: "SUCCESS",
       details: `${user.role} account approved`,
+    });
+
+    await notifyUser({
+      recipient: user._id,
+      title: "Account Approved",
+      message: `Your ${user.role.toLowerCase()} account has been approved. You can now sign in.`,
+      type: "SYSTEM",
     });
 
     res.json({
@@ -205,6 +292,125 @@ exports.getAuditLogs = async (req, res) => {
     const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100);
 
     res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Prescription Monitoring (search / filter / paginate)
+// ===============================
+exports.getAllPrescriptions = async (req, res) => {
+  try {
+    const { q, status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    if (status && status !== "ALL") filter.status = status;
+    if (q) {
+      const regex = new RegExp(escapeRegex(q), "i");
+      filter.$or = [{ prescriptionId: regex }, { patientName: regex }, { doctorName: regex }];
+    }
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+    const [prescriptions, total] = await Promise.all([
+      Prescription.find(filter)
+        .select("-doctorSignature -qrCode")
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum),
+      Prescription.countDocuments(filter),
+    ]);
+
+    res.json({
+      prescriptions,
+      total,
+      page: pageNum,
+      pages: Math.max(1, Math.ceil(total / limitNum)),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// Prescription Detail + Activity Timeline
+// ===============================
+// The timeline is assembled entirely from real records already written
+// elsewhere (AuditLog for account/prescription actions, ScanLog for pharmacy
+// scan/verify/dispense attempts) - nothing here is synthesized or fabricated.
+exports.getPrescriptionDetail = async (req, res) => {
+  try {
+    const prescription = await Prescription.findOne({ prescriptionId: req.params.id }).populate(
+      "patient",
+      "name email",
+    );
+
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found." });
+    }
+
+    const idPattern = new RegExp(escapeRegex(prescription.prescriptionId));
+
+    const [auditEvents, scanEvents] = await Promise.all([
+      AuditLog.find({ target: idPattern }).sort({ createdAt: 1 }),
+      ScanLog.find({ rxId: prescription.prescriptionId }).sort({ scannedAt: 1 }),
+    ]);
+
+    const timeline = [
+      ...auditEvents.map((log) => ({
+        timestamp: log.createdAt,
+        actor: log.user,
+        role: log.role,
+        action: log.action,
+        result: log.result,
+        details: log.details,
+        source: "audit",
+      })),
+      ...scanEvents.map((log) => ({
+        timestamp: log.scannedAt || log.createdAt,
+        actor: log.pharmacist,
+        role: "PHARMACY",
+        action: log.reason,
+        result: log.result,
+        details: log.qrType,
+        source: "scan",
+      })),
+    ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    res.json({ prescription, timeline });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc Admin download of any prescription's PDF
+exports.downloadPrescriptionPdf = async (req, res) => {
+  try {
+    const prescription = await Prescription.findOne({ prescriptionId: req.params.id });
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found." });
+    }
+
+    const pdfBuffer = await createPrescriptionPDF(prescription);
+
+    await logAction({
+      req,
+      user: req.user,
+      action: "DOWNLOAD_PRESCRIPTION",
+      target: `${prescription.prescriptionId} (${prescription.patientName})`,
+      result: "SUCCESS",
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${prescription.prescriptionId}.pdf"`);
+    return res.send(pdfBuffer);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

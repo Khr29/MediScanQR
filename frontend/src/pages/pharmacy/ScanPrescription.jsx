@@ -19,8 +19,11 @@ const ScanPrescription = () => {
   const handleScanSuccess = async (decodedText) => {
     try {
       const qrData = JSON.parse(decodedText);
-      if (qrData.prescriptionId) {
-        navigate(`/pharmacy/dispense/${qrData.prescriptionId}`);
+      // Current QR payloads use `id`; `prescriptionId` is kept for QR codes
+      // generated before the payload was minimized to stop exposing patient/doctor names.
+      const rxId = qrData.id || qrData.prescriptionId;
+      if (rxId) {
+        navigate(`/pharmacy/dispense/${rxId}`);
         return;
       }
     } catch {

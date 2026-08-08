@@ -12,6 +12,11 @@ export const getAllUsers = async (params = {}) => {
   return response.data;
 };
 
+export const getUserDetail = async (id) => {
+  const response = await api.get(`/admin/users/${id}`);
+  return response.data;
+};
+
 export const getPendingDoctors = async () => {
   const response = await api.get('/admin/approvals/doctors');
   return response.data;
@@ -39,6 +44,21 @@ export const approvePharmacy = async (id) => {
 
 export const rejectPharmacy = async (id) => {
   const response = await api.patch(`/admin/approvals/pharmacies/${id}/reject`);
+  return response.data;
+};
+
+export const getAllPrescriptions = async (params = {}) => {
+  const response = await api.get('/admin/prescriptions', { params });
+  return response.data;
+};
+
+export const getPrescriptionDetail = async (id) => {
+  const response = await api.get(`/admin/prescriptions/${id}`);
+  return response.data;
+};
+
+export const downloadPrescriptionPdf = async (id) => {
+  const response = await api.get(`/admin/prescriptions/${id}/pdf`, { responseType: 'blob' });
   return response.data;
 };
 

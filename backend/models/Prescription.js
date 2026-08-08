@@ -25,9 +25,27 @@ const PrescriptionSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Link prescription to the authenticated doctor account that created it -
+    // set server-side from req.user, never trusted from client input.
+    doctor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     doctorName: {
       type: String,
       required: true,
+    },
+
+    // Snapshot of the doctor's professional details at the time this
+    // prescription was created, so later profile edits don't rewrite history.
+    doctorLicenseNumber: {
+      type: String,
+    },
+
+    doctorSpecialization: {
+      type: String,
     },
 
     doctorSignature: {
@@ -56,13 +74,21 @@ const PrescriptionSchema = new mongoose.Schema(
         duration: {
           type: String,
         },
+        instructions: {
+          type: String,
+        },
       },
     ],
 
+    // Doctor's overall clinical notes for this prescription (not per-medicine).
+    notes: {
+      type: String,
+    },
+
     status: {
       type: String,
-      enum: ["PENDING", "DISPENSED", "EXPIRED"],
-      default: "PENDING",
+      enum: ["ACTIVE", "DISPENSED", "EXPIRED", "CANCELLED"],
+      default: "ACTIVE",
     },
 
     dispensedBy: String,
@@ -71,6 +97,12 @@ const PrescriptionSchema = new mongoose.Schema(
 
     // Pharmacist's notes captured at the time of dispensing.
     pharmacyNotes: String,
+
+    cancelledAt: Date,
+
+    cancelledBy: String,
+
+    cancelReason: String,
 
     expiresAt: {
       type: Date,
@@ -82,5 +114,10 @@ const PrescriptionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+PrescriptionSchema.index({ status: 1 });
+PrescriptionSchema.index({ patient: 1 });
+PrescriptionSchema.index({ doctor: 1 });
+PrescriptionSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Prescription", PrescriptionSchema);

@@ -63,7 +63,7 @@ const QRModal = ({ isOpen, onClose, qrCodeUrl, prescriptionId, doctorName, date 
 
         <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
           <ShieldCheck className="h-3.5 w-3.5" />
-          <span>Anti-Fraud Cryptographic Verification</span>
+          <span>Verifiable by any MediScanQR pharmacy</span>
         </div>
       </div>
 

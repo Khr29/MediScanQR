@@ -72,7 +72,7 @@ const DoctorAnalytics = () => {
 
             <div className="card p-6 flex items-center justify-center gap-8">
               <ProgressRing value={analytics?.dispensedRate || 0} tone="emerald" size={120} strokeWidth={12} label="Dispensed" />
-              <ProgressRing value={analytics?.pendingRate || 0} tone="amber" size={120} strokeWidth={12} label="Pending" />
+              <ProgressRing value={analytics?.activeRate || 0} tone="amber" size={120} strokeWidth={12} label="Active" />
             </div>
           </div>
 

@@ -43,4 +43,9 @@ const AuditLogSchema = new mongoose.Schema(
   },
 );
 
+AuditLogSchema.index({ createdAt: -1 });
+AuditLogSchema.index({ action: 1 });
+// Speeds up the per-prescription activity timeline lookup (target regex match).
+AuditLogSchema.index({ target: 1 });
+
 module.exports = mongoose.model("AuditLog", AuditLogSchema);

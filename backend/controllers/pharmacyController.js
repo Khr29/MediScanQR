@@ -1,5 +1,56 @@
 const Prescription = require("../models/Prescription");
 const ScanLog = require("../models/ScanLog");
+const PharmacyProfile = require("../models/PharmacyProfile");
+const User = require("../models/User");
+const logAction = require("../utils/auditLogger");
+const { notifyUser } = require("../utils/notify");
+
+// @desc Get the logged-in pharmacy's profile
+exports.getPharmacyProfile = async (req, res) => {
+  try {
+    const profile = await PharmacyProfile.findOne({ user: req.user._id }).populate(
+      "user",
+      "name email createdAt",
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: "Pharmacy profile not found." });
+    }
+
+    return res.status(200).json(profile);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Update the logged-in pharmacy's profile
+exports.updatePharmacyProfile = async (req, res) => {
+  try {
+    const { name, licenseNumber, address, phone } = req.body;
+
+    const profile = await PharmacyProfile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res.status(404).json({ message: "Pharmacy profile not found." });
+    }
+
+    if (licenseNumber !== undefined) profile.licenseNumber = licenseNumber;
+    if (address !== undefined) profile.address = address;
+    if (phone !== undefined) profile.phone = phone;
+    await profile.save();
+
+    if (name) {
+      await User.findByIdAndUpdate(req.user._id, { name });
+    }
+
+    const updated = await PharmacyProfile.findOne({ user: req.user._id }).populate(
+      "user",
+      "name email createdAt",
+    );
+    return res.status(200).json(updated);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc Verify prescription by RX ID or scanned QR payload
 exports.verifyPrescription = async (req, res) => {
@@ -30,6 +81,24 @@ exports.verifyPrescription = async (req, res) => {
 
       return res.status(400).json({
         message: "ALERT: This prescription has already been dispensed.",
+        prescription,
+      });
+    }
+
+    // Cancelled by the prescribing doctor
+    if (prescription.status === "CANCELLED") {
+      await ScanLog.create({
+        rxId: prescription.prescriptionId,
+        patientName: prescription.patientName,
+        qrType: "Medical QR",
+        rawQRCode: "Prescription",
+        pharmacist: req.user?.name || "Unknown",
+        result: "REJECTED",
+        reason: "Prescription Cancelled",
+      });
+
+      return res.status(400).json({
+        message: "ALERT: This prescription was cancelled by the prescribing doctor.",
         prescription,
       });
     }
@@ -97,14 +166,21 @@ exports.dispensePrescription = async (req, res) => {
       });
     }
 
-    // Prevent dispensing expired prescriptions
+    // Prevent dispensing expired or cancelled prescriptions
     if (prescription.status === "EXPIRED") {
       return res.status(400).json({
         message: "Cannot dispense an expired prescription.",
       });
     }
 
-    // Dispense prescription
+    if (prescription.status === "CANCELLED") {
+      return res.status(400).json({
+        message: "Cannot dispense a prescription that was cancelled by the prescribing doctor.",
+      });
+    }
+
+    // Dispense prescription (only reachable when status is ACTIVE, the only
+    // remaining enum value after the guards above).
     prescription.status = "DISPENSED";
     prescription.dispensedAt = new Date();
     prescription.dispensedBy = req.user?.name || "Pharmacy";
@@ -124,6 +200,23 @@ exports.dispensePrescription = async (req, res) => {
       result: "SUCCESS",
       reason: "Medicine Dispensed",
     });
+
+    await logAction({
+      req,
+      user: req.user,
+      action: "DISPENSE_PRESCRIPTION",
+      target: `${prescription.prescriptionId} (${prescription.patientName})`,
+      result: "SUCCESS",
+      details: `Dispensed by ${req.user?.name || "Pharmacy"}`,
+    });
+
+    await notifyUser({
+      recipient: prescription.patient,
+      title: "Prescription Dispensed",
+      message: `Your prescription ${prescription.prescriptionId} has been dispensed.`,
+      type: "DISPENSED",
+    });
+
     return res.status(200).json({
       message: "Medicine dispensed successfully. Prescription locked.",
       prescription,
@@ -141,8 +234,8 @@ exports.getPharmacyStats = async (req, res) => {
       status: "DISPENSED",
     });
 
-    const pendingPrescriptions = await Prescription.countDocuments({
-      status: "PENDING",
+    const activePrescriptions = await Prescription.countDocuments({
+      status: "ACTIVE",
     });
 
     const today = new Date();
@@ -170,7 +263,7 @@ exports.getPharmacyStats = async (req, res) => {
 
     res.status(200).json({
       totalDispensed,
-      pendingPrescriptions,
+      activePrescriptions,
       todaysScans,
       invalidRejected,
       recentScans,
@@ -225,7 +318,9 @@ exports.verifyPublic = async (req, res) => {
   try {
     const prescription = await Prescription.findOne({
       prescriptionId: req.params.id,
-    }).select("prescriptionId doctorName status createdAt expiresAt medicines");
+    }).select(
+      "prescriptionId doctorName doctorLicenseNumber doctorSignature status createdAt expiresAt medicines",
+    );
 
     if (!prescription) {
       return res.status(404).json({
@@ -236,6 +331,10 @@ exports.verifyPublic = async (req, res) => {
     return res.status(200).json({
       prescriptionId: prescription.prescriptionId,
       doctorName: prescription.doctorName,
+      doctorLicenseNumber: prescription.doctorLicenseNumber,
+      // The raw signature image isn't exposed on this unauthenticated public
+      // page - only whether one is on file - to avoid it being scraped/copied.
+      hasSignature: Boolean(prescription.doctorSignature),
       status: prescription.status,
       createdAt: prescription.createdAt,
       expiresAt: prescription.expiresAt,

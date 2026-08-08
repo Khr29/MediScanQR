@@ -4,20 +4,12 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Table from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import ErrorState from '../../components/common/ErrorState';
-import { getAllUsers } from '../../services/adminService';
-import { formatDate } from '../../utils/formatters';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getAllPrescriptions } from '../../services/adminService';
+import { getStatusVariant, formatDate } from '../../utils/formatters';
+import { Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
-const ROLE_LABELS = {
-  DOCTOR: 'Doctors',
-  PATIENT: 'Patients',
-  PHARMACY: 'Pharmacies',
-};
-
-// Backs the "All Users" page and its role-filtered sub-views (Doctors,
-// Patients, Pharmacies) — one component instead of four near-identical copies.
-const AllUsers = ({ role = null }) => {
-  const [users, setUsers] = useState([]);
+const AdminPrescriptions = () => {
+  const [prescriptions, setPrescriptions] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
@@ -28,49 +20,42 @@ const AllUsers = ({ role = null }) => {
   const [error, setError] = useState(null);
   const [retryTick, setRetryTick] = useState(0);
 
-  // Debounce search so every keystroke doesn't trigger a request.
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(search), 350);
     return () => clearTimeout(timeout);
   }, [search]);
 
-  // Any filter change re-starts pagination at page 1.
   useEffect(() => {
     setPage(1);
-  }, [role, status, debouncedSearch]);
+  }, [status, debouncedSearch]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchPrescriptions = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getAllUsers({
+        const data = await getAllPrescriptions({
           q: debouncedSearch || undefined,
-          role: role || undefined,
           status: status !== 'ALL' ? status : undefined,
           page,
           limit: 20,
         });
-        setUsers(data.users);
+        setPrescriptions(data.prescriptions);
         setTotal(data.total);
         setPages(data.pages);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load users.');
+        setError(err.response?.data?.message || 'Failed to load prescriptions.');
       } finally {
         setLoading(false);
       }
     };
-    fetchUsers();
-  }, [role, status, debouncedSearch, page, retryTick]);
-
-  const title = role ? ROLE_LABELS[role] : 'All Users';
+    fetchPrescriptions();
+  }, [status, debouncedSearch, page, retryTick]);
 
   return (
     <AdminLayout>
-      <h1 className="page-heading mb-1">{title}</h1>
-      <p className="page-subheading mb-6">
-        {role ? `Manage every registered ${role.toLowerCase()} account.` : 'Search and manage every account on the platform.'}
-      </p>
+      <h1 className="page-heading mb-1">Prescriptions</h1>
+      <p className="page-subheading mb-6">Search and inspect every prescription issued on the platform</p>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
         <div className="relative w-full sm:w-80">
@@ -79,22 +64,21 @@ const AllUsers = ({ role = null }) => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email..."
+            placeholder="Search by Rx ID, patient, or doctor..."
             className="w-full rounded-xl border border-slate-300 pl-9 pr-4 py-2.5 text-xs focus:border-indigo-500 focus:outline-none bg-white shadow-sm"
           />
         </div>
 
         <select
           value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setStatus(e.target.value)}
           className="w-full sm:w-auto rounded-xl border border-slate-300 px-3 py-2.5 text-xs bg-white shadow-sm focus:outline-none"
         >
           <option value="ALL">All Statuses</option>
-          <option value="APPROVED">Approved</option>
-          <option value="PENDING">Pending</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DISPENSED">Dispensed</option>
+          <option value="EXPIRED">Expired</option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
 
@@ -103,30 +87,27 @@ const AllUsers = ({ role = null }) => {
       ) : (
         <>
           <Table
-            headers={['Name', 'Email', 'Role', 'Status', 'Registered', 'Actions']}
-            emptyMessage="No users match the current filters."
+            headers={['Rx ID', 'Patient', 'Doctor', 'Medicines', 'Status', 'Issued', 'Actions']}
+            emptyMessage="No prescriptions match the current filters."
             loading={loading}
           >
-            {users.map((u) => (
-              <tr key={u._id} className="hover:bg-slate-50">
-                <td className="px-6 py-4 text-xs font-bold text-slate-800">{u.name}</td>
-                <td className="px-6 py-4 text-xs text-slate-600">{u.email}</td>
-                <td className="px-6 py-4 text-xs text-slate-500">{u.role}</td>
+            {prescriptions.map((rx) => (
+              <tr key={rx._id} className="hover:bg-slate-50">
+                <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId}</td>
+                <td className="px-6 py-4 text-xs text-slate-700">{rx.patientName}</td>
+                <td className="px-6 py-4 text-xs text-slate-700">{rx.doctorName ? `Dr. ${rx.doctorName}` : 'N/A'}</td>
+                <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0}</td>
                 <td className="px-6 py-4 text-xs">
-                  <Badge variant={u.isApproved ? 'success' : 'warning'}>
-                    {u.isApproved ? 'Approved' : 'Pending'}
-                  </Badge>
+                  <Badge variant={getStatusVariant(rx.status)}>{rx.status}</Badge>
                 </td>
-                <td className="px-6 py-4 text-xs text-slate-500">{formatDate(u.createdAt)}</td>
+                <td className="px-6 py-4 text-xs text-slate-500">{formatDate(rx.createdAt)}</td>
                 <td className="px-6 py-4 text-xs">
-                  <div className="flex items-center gap-3">
-                    <Link to={`/admin/users/${u._id}`} className="font-semibold text-indigo-600 hover:text-indigo-800">
-                      View
-                    </Link>
-                    {!u.isApproved && (u.role === 'DOCTOR' || u.role === 'PHARMACY') && (
-                      <span className="italic text-slate-400">Review in Approvals</span>
-                    )}
-                  </div>
+                  <Link
+                    to={`/admin/prescriptions/${rx.prescriptionId}`}
+                    className="flex items-center gap-1 text-indigo-600 hover:underline font-semibold w-fit"
+                  >
+                    <Eye className="h-3.5 w-3.5" /> View
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -164,4 +145,4 @@ const AllUsers = ({ role = null }) => {
   );
 };
 
-export default AllUsers;
+export default AdminPrescriptions;

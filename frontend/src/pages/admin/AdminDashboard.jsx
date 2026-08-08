@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Activity,
+  ShieldAlert,
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -95,6 +96,23 @@ const AdminDashboard = () => {
                   </Link>
                 )}
               </div>
+            </div>
+          )}
+
+          {!loading && (stats?.failedLogins24h > 0 || stats?.rejectedScans24h > 0) && (
+            <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-5 py-4">
+              <p className="text-sm font-semibold text-rose-800 flex items-center gap-2 mb-1">
+                <ShieldAlert className="h-4 w-4" /> Security signals (last 24 hours)
+              </p>
+              <p className="text-xs text-rose-700">
+                {stats.failedLogins24h > 0 && `${stats.failedLogins24h} failed login attempt${stats.failedLogins24h === 1 ? '' : 's'}`}
+                {stats.failedLogins24h > 0 && stats.rejectedScans24h > 0 && ' · '}
+                {stats.rejectedScans24h > 0 && `${stats.rejectedScans24h} rejected QR scan${stats.rejectedScans24h === 1 ? '' : 's'}`}
+                {'  '}
+                <Link to="/admin/audit-logs" className="font-semibold underline">
+                  Review audit log
+                </Link>
+              </p>
             </div>
           )}
 

@@ -8,6 +8,8 @@ const {
   getPrescriptionDetails,
   logInvalidScan,
   verifyPublic,
+  getPharmacyProfile,
+  updatePharmacyProfile,
 } = require("../controllers/pharmacyController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
@@ -23,6 +25,9 @@ router.get(
   requireRole(roles.PHARMACY),
   getPharmacyStats,
 );
+
+router.get("/profile", verifyToken, requireRole(roles.PHARMACY), getPharmacyProfile);
+router.put("/profile", verifyToken, requireRole(roles.PHARMACY), updatePharmacyProfile);
 
 // Verification (Pharmacy only)
 router.get(

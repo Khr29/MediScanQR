@@ -2,13 +2,15 @@ import React from 'react';
 import { Bell } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
-const NotificationBell = ({ onClick }) => {
+const NotificationBell = ({ onClick, dark = false }) => {
   const { unreadCount } = useNotification();
 
   return (
     <button
       onClick={onClick}
-      className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+      className={`relative rounded-lg p-2 transition-colors ${
+        dark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'
+      }`}
       aria-label="Notifications"
     >
       <Bell className="h-5 w-5" />

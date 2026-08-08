@@ -7,6 +7,16 @@ export const getPharmacyStats = async () => {
 
 export const getPharmacyDashboardStats = getPharmacyStats;
 
+export const getPharmacyProfile = async () => {
+  const response = await api.get("/pharmacy/profile");
+  return response.data;
+};
+
+export const updatePharmacyProfile = async (profileData) => {
+  const response = await api.put("/pharmacy/profile", profileData);
+  return response.data;
+};
+
 export const verifyPrescription = async (rxId) => {
   const response = await api.get(`/pharmacy/verify/${rxId}`);
   return response.data;

@@ -118,7 +118,7 @@ const DispensePortal = () => {
                 <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
                   <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Current Status</p>
                   <p className={`mt-2 text-lg font-bold ${isDispensed ? 'text-rose-600' : 'text-emerald-600'}`}>
-                    {isDispensed ? 'Dispensed' : 'Pending'}
+                    {isDispensed ? 'Dispensed' : 'Active'}
                   </p>
                 </div>
               </div>

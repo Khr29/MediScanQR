@@ -4,12 +4,16 @@ const router = express.Router();
 const {
   getAdminStats,
   getAllUsers,
+  getUserDetail,
   getPendingDoctors,
   getPendingPharmacies,
   approveUser,
   rejectUser,
   getAuditLogs,
   getSystemAnalytics,
+  getAllPrescriptions,
+  getPrescriptionDetail,
+  downloadPrescriptionPdf,
 } = require("../controllers/adminController");
 
 const { verifyToken } = require("../middleware/authMiddleware");
@@ -21,6 +25,7 @@ router.get("/stats", verifyToken, requireRole(roles.ADMIN), getAdminStats);
 
 // User Management
 router.get("/users", verifyToken, requireRole(roles.ADMIN), getAllUsers);
+router.get("/users/:id", verifyToken, requireRole(roles.ADMIN), getUserDetail);
 
 // Doctor Approvals
 router.get(
@@ -65,6 +70,11 @@ router.patch(
   requireRole(roles.ADMIN),
   rejectUser,
 );
+
+// Prescription Monitoring
+router.get("/prescriptions", verifyToken, requireRole(roles.ADMIN), getAllPrescriptions);
+router.get("/prescriptions/:id", verifyToken, requireRole(roles.ADMIN), getPrescriptionDetail);
+router.get("/prescriptions/:id/pdf", verifyToken, requireRole(roles.ADMIN), downloadPrescriptionPdf);
 
 // Audit Logs
 router.get("/audit-logs", verifyToken, requireRole(roles.ADMIN), getAuditLogs);

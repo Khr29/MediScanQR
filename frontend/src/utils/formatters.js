@@ -43,6 +43,8 @@ export const getStatusVariant = (status) => {
     case 'REJECTED':
     case 'FAILED':
       return 'danger';
+    // CANCELLED falls through to the default 'neutral' - a deliberate doctor
+    // action, not a failure state, so it shouldn't read as danger/warning.
     default:
       return 'neutral';
   }
@@ -63,6 +65,7 @@ export const getStatusBadgeClass = (status) => {
     case 'EXPIRED':
     case 'REVOKED':
       return 'bg-rose-100 text-rose-800 border-rose-300';
+    case 'CANCELLED':
     default:
       return 'bg-slate-100 text-slate-800 border-slate-300';
   }
