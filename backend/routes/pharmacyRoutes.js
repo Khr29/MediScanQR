@@ -7,10 +7,15 @@ const {
   getDispenseHistory,
   getPrescriptionDetails,
   logInvalidScan,
+  verifyPublic,
 } = require("../controllers/pharmacyController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
 const roles = require("../config/roles");
+
+// Public verification — no auth. Must stay before any /:param routes below
+// only matter within this router's own paths, so order here is fine.
+router.get("/verify-public/:id", verifyPublic);
 
 router.get(
   "/stats",

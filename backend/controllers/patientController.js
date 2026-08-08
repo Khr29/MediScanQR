@@ -26,18 +26,10 @@ exports.getPrescriptionById = async (req, res) => {
     });
 
     if (!prescription) {
-
-  await ScanLog.create({
-    rxId,
-    pharmacist: req.user?.name || "Unknown",
-    result: "REJECTED",
-    reason: "Invalid QR",
-  });
-
-  return res
-    .status(404)
-    .json({ message: "Invalid or non-existent prescription ID." });
-}
+      return res
+        .status(404)
+        .json({ message: "Invalid or non-existent prescription ID." });
+    }
 
     return res.status(200).json(prescription);
   } catch (error) {
@@ -46,6 +38,34 @@ exports.getPrescriptionById = async (req, res) => {
     });
   }
 };
+// @desc Flattened medicine history across all of the patient's prescriptions
+exports.getMedicineHistory = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find({
+      patient: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    const history = prescriptions.flatMap((p) =>
+      (p.medicines || []).map((m) => ({
+        medicineName: m.name,
+        dosage: m.dosage,
+        frequency: m.frequency,
+        duration: m.duration,
+        prescriptionId: p.prescriptionId,
+        doctorName: p.doctorName,
+        status: p.status,
+        date: p.createdAt,
+      })),
+    );
+
+    return res.status(200).json(history);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 // @desc Get patient dashboard statistics
 exports.getPatientDashboard = async (req, res) => {
   try {

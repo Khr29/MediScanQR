@@ -154,7 +154,75 @@ exports.searchPatients = async (req, res) => {
   try {
     const profiles = await PatientProfile.find().populate("user", "name email");
 
-    return res.status(200).json(profiles);
+    const q = req.query.q?.trim().toLowerCase();
+    if (!q) {
+      return res.status(200).json(profiles);
+    }
+
+    const filtered = profiles.filter(
+      (p) =>
+        p.user?.name?.toLowerCase().includes(q) ||
+        p.user?.email?.toLowerCase().includes(q),
+    );
+
+    return res.status(200).json(filtered);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// @desc Analytics for the logged-in doctor's own prescriptions
+exports.getDoctorAnalytics = async (req, res) => {
+  try {
+    const doctorName = req.user.name;
+    const prescriptions = await Prescription.find({ doctorName });
+
+    const totalPrescriptions = prescriptions.length;
+    const dispensedCount = prescriptions.filter((p) => p.status === "DISPENSED").length;
+    const pendingCount = prescriptions.filter((p) => p.status === "PENDING").length;
+    const expiredCount = prescriptions.filter((p) => p.status === "EXPIRED").length;
+
+    const medicineCounts = {};
+    prescriptions.forEach((p) => {
+      p.medicines?.forEach((m) => {
+        medicineCounts[m.name] = (medicineCounts[m.name] || 0) + 1;
+      });
+    });
+    const topMedicines = Object.entries(medicineCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    // Prescription volume for the last 6 calendar months (oldest first).
+    const now = new Date();
+    const monthlyTrend = [];
+    for (let i = 5; i >= 0; i--) {
+      const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      const count = prescriptions.filter(
+        (p) => p.createdAt >= start && p.createdAt < end,
+      ).length;
+      monthlyTrend.push({ label: start.toLocaleString("en-US", { month: "short" }), count });
+    }
+
+    return res.status(200).json({
+      totalPrescriptions,
+      dispensedCount,
+      pendingCount,
+      expiredCount,
+      dispensedRate: totalPrescriptions
+        ? Math.round((dispensedCount / totalPrescriptions) * 100)
+        : 0,
+      pendingRate: totalPrescriptions
+        ? Math.round((pendingCount / totalPrescriptions) * 100)
+        : 0,
+      topMedicines,
+      monthlyTrend,
+    });
   } catch (error) {
     console.error(error);
 

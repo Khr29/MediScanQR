@@ -7,6 +7,11 @@ export const getAdminDashboardStats = async () => {
 
 export const getAdminStats = getAdminDashboardStats;
 
+export const getAllUsers = async (params = {}) => {
+  const response = await api.get('/admin/users', { params });
+  return response.data;
+};
+
 export const getPendingDoctors = async () => {
   const response = await api.get('/admin/approvals/doctors');
   return response.data;

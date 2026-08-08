@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   getAdminStats,
+  getAllUsers,
   getPendingDoctors,
   getPendingPharmacies,
   approveUser,
@@ -17,6 +18,9 @@ const roles = require("../config/roles");
 
 // Dashboard
 router.get("/stats", verifyToken, requireRole(roles.ADMIN), getAdminStats);
+
+// User Management
+router.get("/users", verifyToken, requireRole(roles.ADMIN), getAllUsers);
 
 // Doctor Approvals
 router.get(

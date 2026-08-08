@@ -9,6 +9,7 @@ import RoleGuard from './components/auth/RoleGuard';
 
 // Public Pages
 import PublicVerify from './pages/PublicVerify';
+import Unauthorized from './pages/Unauthorized';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -40,11 +41,12 @@ import InvalidQRCode from "./pages/pharmacy/InvalidQRCode";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AllUsers from './pages/admin/AllUsers';
 import DoctorApprovals from './pages/admin/DoctorApprovals';
 import PharmacyApprovals from './pages/admin/PharmacyApprovals';
 import AuditLogs from './pages/admin/AuditLogs';
 import SystemAnalytics from './pages/admin/SystemAnalytics';
-import UserApprovals from './pages/admin/UserApprovals';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function App() {
   return (
@@ -57,8 +59,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/verify/:id" element={<PublicVerify />} />
+            <Route path="/unauthorized" element={<ProtectedRoute><Unauthorized /></ProtectedRoute>} />
 
             {/* Doctor Routes */}
             <Route
@@ -230,15 +233,55 @@ function App() {
               
             />
             <Route
-              path="/admin/approvals"
+              path="/admin/users"
               element={
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
-                    <UserApprovals />
+                    <AllUsers />
                   </RoleGuard>
                 </ProtectedRoute>
               }
-              />
+            />
+            <Route
+              path="/admin/users/doctors"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AllUsers role="DOCTOR" />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users/patients"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AllUsers role="PATIENT" />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users/pharmacies"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AllUsers role="PHARMACY" />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminSettings />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin/doctor-approvals"
               element={

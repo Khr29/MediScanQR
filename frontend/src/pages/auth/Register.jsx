@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authService";
+import { validateEmail, validatePassword } from "../../utils/validators";
 import {
   Activity,
   User,
@@ -8,6 +9,8 @@ import {
   Lock,
   Shield,
   AlertCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Register = () => {
@@ -25,10 +28,19 @@ const Register = () => {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!validateEmail(formData.email)) {
+      return setError("Please enter a valid email address.");
+    }
+    if (!validatePassword(formData.password)) {
+      return setError("Password must be at least 6 characters.");
+    }
+
     setLoading(true);
 
     try {
@@ -210,7 +222,7 @@ const Register = () => {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={formData.password}
                 onChange={(e) =>
@@ -219,9 +231,16 @@ const Register = () => {
                     password: e.target.value,
                   })
                 }
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2 text-xs focus:border-sky-500 focus:outline-none"
+                placeholder="At least 6 characters"
+                className="w-full rounded-lg border border-slate-300 pl-9 pr-10 py-2 text-xs focus:border-sky-500 focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 

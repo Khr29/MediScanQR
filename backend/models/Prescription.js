@@ -53,6 +53,9 @@ const PrescriptionSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        duration: {
+          type: String,
+        },
       },
     ],
 
@@ -65,6 +68,9 @@ const PrescriptionSchema = new mongoose.Schema(
     dispensedBy: String,
 
     dispensedAt: Date,
+
+    // Pharmacist's notes captured at the time of dispensing.
+    pharmacyNotes: String,
 
     expiresAt: {
       type: Date,

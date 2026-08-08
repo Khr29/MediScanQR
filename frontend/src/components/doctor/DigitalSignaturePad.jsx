@@ -1,38 +1,46 @@
 import React, { useRef, useState } from 'react';
 import { Eraser, Check } from 'lucide-react';
 
+const getPoint = (canvas, e) => {
+  const rect = canvas.getBoundingClientRect();
+  const source = 'touches' in e ? e.touches[0] || e.changedTouches[0] : e;
+  return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+};
+
 const DigitalSignaturePad = ({ onSave }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const startDrawing = (e) => {
+    e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const { x, y } = getPoint(canvas, e);
     const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
     ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.moveTo(x, y);
     setIsDrawing(true);
+    setSaved(false);
   };
 
   const draw = (e) => {
     if (!isDrawing) return;
+    e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const { x, y } = getPoint(canvas, e);
     const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.strokeStyle = '#0284c7'; // Sky-600 color
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#0284c7'; // Sky-600
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.stroke();
     setHasSigned(true);
   };
 
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
+  const stopDrawing = () => setIsDrawing(false);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -40,6 +48,7 @@ const DigitalSignaturePad = ({ onSave }) => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSigned(false);
+    setSaved(false);
   };
 
   const handleSave = () => {
@@ -47,13 +56,14 @@ const DigitalSignaturePad = ({ onSave }) => {
     if (!canvas || !hasSigned) return;
     const dataUrl = canvas.toDataURL('image/png');
     if (onSave) onSave(dataUrl);
+    setSaved(true);
   };
 
   return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="card p-4">
       <div className="flex items-center justify-between mb-2">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-          Doctor Digital Signature
+          Digital Signature <span className="font-normal normal-case text-slate-400">(optional)</span>
         </label>
         <button
           type="button"
@@ -73,6 +83,9 @@ const DigitalSignaturePad = ({ onSave }) => {
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
           className="w-full h-36 cursor-crosshair touch-none"
         />
       </div>
@@ -84,7 +97,7 @@ const DigitalSignaturePad = ({ onSave }) => {
           disabled={!hasSigned}
           className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors"
         >
-          <Check className="h-3.5 w-3.5" /> Confirm Signature
+          <Check className="h-3.5 w-3.5" /> {saved ? 'Signature Saved' : 'Confirm Signature'}
         </button>
       </div>
     </div>

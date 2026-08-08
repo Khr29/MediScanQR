@@ -1,6 +1,11 @@
 import React from 'react';
+import EmptyState from './EmptyState';
 
-const Table = ({ headers = [], children, emptyMessage = 'No records found.' }) => {
+const SKELETON_ROWS = 5;
+
+const Table = ({ headers = [], children, emptyMessage = 'No records found.', loading = false }) => {
+  const isEmpty = !loading && React.Children.count(children) === 0;
+
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-left text-sm text-slate-600">
@@ -14,10 +19,20 @@ const Table = ({ headers = [], children, emptyMessage = 'No records found.' }) =
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {React.Children.count(children) === 0 ? (
+          {loading ? (
+            Array.from({ length: SKELETON_ROWS }).map((_, row) => (
+              <tr key={row}>
+                {headers.map((_, col) => (
+                  <td key={col} className="px-6 py-4">
+                    <div className="h-3.5 w-full max-w-[10rem] animate-pulse rounded bg-slate-100" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : isEmpty ? (
             <tr>
-              <td colSpan={headers.length || 1} className="px-6 py-8 text-center text-slate-400">
-                {emptyMessage}
+              <td colSpan={headers.length || 1} className="p-0">
+                <EmptyState title={emptyMessage} />
               </td>
             </tr>
           ) : (

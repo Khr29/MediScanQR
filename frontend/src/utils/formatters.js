@@ -11,6 +11,44 @@ export const formatDate = (dateString) => {
 };
 
 /**
+ * Format ISO date string into readable local date + time
+ */
+export const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
+/**
+ * Map a status/result string to a Badge `variant` prop.
+ */
+export const getStatusVariant = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'ISSUED':
+    case 'ACTIVE':
+    case 'PENDING':
+      return 'warning';
+    case 'DISPENSED':
+    case 'COMPLETED':
+    case 'APPROVED':
+    case 'SUCCESS':
+      return 'success';
+    case 'EXPIRED':
+    case 'REVOKED':
+    case 'REJECTED':
+    case 'FAILED':
+      return 'danger';
+    default:
+      return 'neutral';
+  }
+};
+
+/**
  * Format prescription status to styled badge color classes
  */
 export const getStatusBadgeClass = (status) => {

@@ -61,7 +61,7 @@ const QRDisplay = ({
               <Copy className="h-3.5 w-3.5 text-slate-500" />
             )}
 
-            {copied ? "Copied" : "Copy Image Data"}
+            {copied ? "Copied" : "Copy Data"}
           </button>
 
           <button

@@ -7,6 +7,7 @@ const {
   getPatientProfile,
   updatePatientProfile,
   getPrescriptionById,
+  getMedicineHistory,
 } = require("../controllers/patientController");
 
 const { verifyToken } = require("../middleware/authMiddleware");
@@ -32,6 +33,13 @@ router.get(
   verifyToken,
   requireRole(roles.PATIENT),
   getPrescriptionById,
+);
+
+router.get(
+  "/medicine-history",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  getMedicineHistory,
 );
 
 router.get(

@@ -52,6 +52,49 @@ exports.getAdminStats = async (req, res) => {
   }
 };
 
+// Escape user input before embedding it in a RegExp so search text can't be
+// used to build an unintended/expensive pattern.
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// ===============================
+// All Users (search / filter / paginate)
+// ===============================
+exports.getAllUsers = async (req, res) => {
+  try {
+    const { q, role, status, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    if (role && role !== "ALL") filter.role = role;
+    if (status === "APPROVED") filter.isApproved = true;
+    if (status === "PENDING") filter.isApproved = false;
+    if (q) {
+      const regex = new RegExp(escapeRegex(q), "i");
+      filter.$or = [{ name: regex }, { email: regex }];
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum),
+      User.countDocuments(filter),
+    ]);
+
+    res.json({
+      users,
+      total,
+      page: pageNum,
+      pages: Math.max(1, Math.ceil(total / limitNum)),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // ===============================
 // Pending Doctors
 // ===============================
@@ -172,15 +215,30 @@ exports.getAuditLogs = async (req, res) => {
 // ===============================
 exports.getSystemAnalytics = async (req, res) => {
   try {
+    const totalPrescriptions = await Prescription.countDocuments();
+    const dispensedPrescriptions = await Prescription.countDocuments({
+      status: "DISPENSED",
+    });
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthlyPrescriptions = await Prescription.countDocuments({
+      createdAt: { $gte: monthStart },
+    });
+
     const analytics = {
       totalUsers: await User.countDocuments(),
       totalDoctors: await User.countDocuments({ role: "DOCTOR" }),
       totalPatients: await User.countDocuments({ role: "PATIENT" }),
       totalPharmacies: await User.countDocuments({ role: "PHARMACY" }),
-      totalPrescriptions: await Prescription.countDocuments(),
-      dispensedPrescriptions: await Prescription.countDocuments({
-        status: "DISPENSED",
-      }),
+      totalPrescriptions,
+      dispensedPrescriptions,
+      monthlyPrescriptions,
+      // Percentage of prescriptions ever dispensed, one decimal place.
+      fulfillmentRate: totalPrescriptions
+        ? Math.round((dispensedPrescriptions / totalPrescriptions) * 1000) / 10
+        : 0,
     };
 
     res.json(analytics);

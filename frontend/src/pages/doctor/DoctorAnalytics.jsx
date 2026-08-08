@@ -1,49 +1,59 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../../components/common/Navbar';
-import Sidebar from '../../components/common/Sidebar';
+import DoctorLayout from '../../layouts/DoctorLayout';
 import Loader from '../../components/common/Loader';
-import { BarChart3, Pill, CheckCircle2, ShieldAlert } from 'lucide-react';
+import ErrorState from '../../components/common/ErrorState';
+import ProgressRing from '../../components/common/ProgressRing';
+import EmptyState from '../../components/common/EmptyState';
+import { BarChart3, Pill, TrendingUp } from 'lucide-react';
 import { getDoctorAnalytics } from '../../services/doctorService';
 
 const DoctorAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getDoctorAnalytics();
+      setAnalytics(data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load analytics.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const data = await getDoctorAnalytics();
-        setAnalytics(data);
-      } catch (err) {
-        console.error('Error loading analytics:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAnalytics();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Prescription Analytics</h1>
-          <p className="text-xs text-slate-500 mb-8">Statistical trends of prescribed medications</p>
+  const maxMonthly = Math.max(1, ...(analytics?.monthlyTrend?.map((m) => m.count) || [1]));
+  const topMedicineMax = Math.max(1, ...(analytics?.topMedicines?.map((m) => m.count) || [1]));
 
-          {loading ? (
-            <Loader text="Generating analytics reports..." />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Top Medicines Card */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <Pill className="h-4 w-4 text-sky-600" /> Most Prescribed Medicines
-                </h2>
+  return (
+    <DoctorLayout>
+      <h1 className="page-heading mb-1">Prescription Analytics</h1>
+      <p className="page-subheading mb-8">Statistical trends from prescriptions you've issued</p>
+
+      {error ? (
+        <ErrorState message={error} onRetry={fetchAnalytics} />
+      ) : loading ? (
+        <Loader text="Generating analytics report..." />
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="card p-6">
+              <h2 className="section-title mb-4">
+                <Pill className="h-4 w-4 text-sky-600" /> Most Prescribed Medicines
+              </h2>
+              {!analytics?.topMedicines?.length ? (
+                <EmptyState title="No prescriptions yet" message="Medicine trends will appear here once you issue prescriptions." />
+              ) : (
                 <div className="space-y-4">
-                  {analytics?.topMedicines?.map((med, idx) => (
-                    <div key={idx} className="space-y-1">
+                  {analytics.topMedicines.map((med) => (
+                    <div key={med.name} className="space-y-1">
                       <div className="flex justify-between text-xs font-semibold text-slate-700">
                         <span>{med.name}</span>
                         <span className="text-sky-600">{med.count} prescriptions</span>
@@ -51,37 +61,46 @@ const DoctorAnalytics = () => {
                       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-sky-600 rounded-full"
-                          style={{ width: `${Math.min(100, (med.count / (analytics?.totalRx || 1)) * 100)}%` }}
+                          style={{ width: `${(med.count / topMedicineMax) * 100}%` }}
                         ></div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Status Breakdown Card */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-sky-600" /> Dispensation Status Distribution
-                </h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-emerald-50 p-4 border border-emerald-100 text-center">
-                    <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
-                    <span className="text-2xl font-bold text-emerald-900">{analytics?.dispensedRate || '0%'}</span>
-                    <p className="text-xs text-emerald-700 mt-1 font-medium">Dispensed Rate</p>
-                  </div>
-                  <div className="rounded-xl bg-amber-50 p-4 border border-amber-100 text-center">
-                    <ShieldAlert className="h-6 w-6 text-amber-600 mx-auto mb-1" />
-                    <span className="text-2xl font-bold text-amber-900">{analytics?.pendingRate || '0%'}</span>
-                    <p className="text-xs text-amber-700 mt-1 font-medium">Pending Rate</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </main>
-      </div>
-    </div>
+
+            <div className="card p-6 flex items-center justify-center gap-8">
+              <ProgressRing value={analytics?.dispensedRate || 0} tone="emerald" size={120} strokeWidth={12} label="Dispensed" />
+              <ProgressRing value={analytics?.pendingRate || 0} tone="amber" size={120} strokeWidth={12} label="Pending" />
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <h2 className="section-title mb-5">
+              <TrendingUp className="h-4 w-4 text-sky-600" /> Prescriptions Issued — Last 6 Months
+            </h2>
+            <div className="flex items-end justify-between gap-3 h-40">
+              {analytics?.monthlyTrend?.map((m) => (
+                <div key={m.label} className="flex flex-col items-center flex-1 h-full justify-end">
+                  <span className="text-[10px] font-bold text-slate-600 mb-1">{m.count}</span>
+                  <div
+                    className="w-full max-w-[2.5rem] rounded-t-md bg-sky-500"
+                    style={{ height: `${Math.max(4, (m.count / maxMonthly) * 100)}%` }}
+                  ></div>
+                  <span className="text-[10px] text-slate-400 mt-2">{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <BarChart3 className="h-3.5 w-3.5" />
+            Based on {analytics?.totalPrescriptions || 0} total prescriptions
+          </div>
+        </div>
+      )}
+    </DoctorLayout>
   );
 };
 

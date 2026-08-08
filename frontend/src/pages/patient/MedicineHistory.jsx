@@ -1,64 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../../components/common/Navbar';
-import Sidebar from '../../components/common/Sidebar';
-import Loader from '../../components/common/Loader';
+import PatientLayout from '../../layouts/PatientLayout';
 import Table from '../../components/common/Table';
+import ErrorState from '../../components/common/ErrorState';
 import { getMedicalHistory } from '../../services/patientService';
-import { History, Pill, Calendar, User } from 'lucide-react';
+import { formatDate } from '../../utils/formatters';
+import { Pill } from 'lucide-react';
 
 const MedicineHistory = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getMedicalHistory();
+      setHistory(data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load your medicine history.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const data = await getMedicalHistory();
-        setHistory(data);
-      } catch (err) {
-        console.error('Error fetching medical history:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHistory();
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Medication History</h1>
-          <p className="text-xs text-slate-500 mb-6">Lifetime record of all prescribed & dispensed medications</p>
+    <PatientLayout>
+      <h1 className="page-heading mb-1">Medicine History</h1>
+      <p className="page-subheading mb-6">Every medication you've been prescribed, across all your prescriptions</p>
 
-          {loading ? (
-            <Loader text="Loading medication timeline..." />
-          ) : (
-            <Table
-              headers={['Medication Name', 'Dosage', 'Prescribed By', 'Duration / Frequency', 'Date Issued']}
-              emptyMessage="No past medication records found."
-            >
-              {history.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 text-xs font-bold text-slate-800 flex items-center gap-2">
-                    <Pill className="h-4 w-4 text-sky-600 shrink-0" />
-                    {item.medicineName || item.name}
-                  </td>
-                  <td className="px-6 py-4 text-xs font-mono font-semibold text-slate-700">{item.dosage}</td>
-                  <td className="px-6 py-4 text-xs text-slate-600">
-                    {item.doctorName ? `Dr. ${item.doctorName}` : 'Authorized Physician'}
-                  </td>
-                  <td className="px-6 py-4 text-xs text-slate-500">{item.frequency || 'Daily'} ({item.duration || 'N/A'})</td>
-                  <td className="px-6 py-4 text-xs text-slate-500">{new Date(item.issuedDate || Date.now()).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </Table>
-          )}
-        </main>
-      </div>
-    </div>
+      {error ? (
+        <ErrorState message={error} onRetry={fetchHistory} />
+      ) : (
+        <Table
+          headers={['Medicine', 'Dosage', 'Prescribed By', 'Frequency / Duration', 'Date']}
+          emptyMessage="No medicine history yet."
+          loading={loading}
+        >
+          {history.map((item, idx) => (
+            <tr key={idx} className="hover:bg-slate-50">
+              <td className="px-6 py-4 text-xs font-bold text-slate-800">
+                <span className="flex items-center gap-2">
+                  <Pill className="h-4 w-4 text-emerald-600 shrink-0" />
+                  {item.medicineName}
+                </span>
+              </td>
+              <td className="px-6 py-4 text-xs font-mono font-semibold text-slate-700">{item.dosage}</td>
+              <td className="px-6 py-4 text-xs text-slate-600">{item.doctorName ? `Dr. ${item.doctorName}` : 'Authorized Physician'}</td>
+              <td className="px-6 py-4 text-xs text-slate-500">
+                {item.frequency || 'Daily'}
+                {item.duration ? ` (${item.duration})` : ''}
+              </td>
+              <td className="px-6 py-4 text-xs text-slate-500">{formatDate(item.date)}</td>
+            </tr>
+          ))}
+        </Table>
+      )}
+    </PatientLayout>
   );
 };
 

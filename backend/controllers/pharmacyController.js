@@ -108,6 +108,9 @@ exports.dispensePrescription = async (req, res) => {
     prescription.status = "DISPENSED";
     prescription.dispensedAt = new Date();
     prescription.dispensedBy = req.user?.name || "Pharmacy";
+    if (typeof req.body?.pharmacyNotes === "string") {
+      prescription.pharmacyNotes = req.body.pharmacyNotes;
+    }
 
     await prescription.save();
 
@@ -211,6 +214,36 @@ exports.getPrescriptionDetails = async (req, res) => {
     console.error(err);
     res.status(500).json({
       message: "Failed to fetch prescription details.",
+    });
+  }
+};
+
+// @desc Public, unauthenticated verification for QR-printed prescriptions.
+// Deliberately returns only the minimal fields needed to prove authenticity —
+// no patient identity, doctor signature, or internal IDs.
+exports.verifyPublic = async (req, res) => {
+  try {
+    const prescription = await Prescription.findOne({
+      prescriptionId: req.params.id,
+    }).select("prescriptionId doctorName status createdAt expiresAt medicines");
+
+    if (!prescription) {
+      return res.status(404).json({
+        message: "Invalid or non-existent prescription ID.",
+      });
+    }
+
+    return res.status(200).json({
+      prescriptionId: prescription.prescriptionId,
+      doctorName: prescription.doctorName,
+      status: prescription.status,
+      createdAt: prescription.createdAt,
+      expiresAt: prescription.expiresAt,
+      medicines: prescription.medicines,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
     });
   }
 };

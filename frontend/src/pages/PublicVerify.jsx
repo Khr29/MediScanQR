@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ShieldCheck, AlertCircle, Pill, Calendar, User, Building } from 'lucide-react';
+import { ShieldCheck, AlertCircle, Pill, Calendar, User } from 'lucide-react';
 import Loader from '../components/common/Loader';
 import Badge from '../components/common/Badge';
-import axios from 'axios';
+import { verifyPublicPrescription } from '../services/pharmacyService';
+import { getStatusVariant, formatDate } from '../utils/formatters';
 
 const PublicVerify = () => {
   const { id } = useParams();
@@ -14,8 +15,8 @@ const PublicVerify = () => {
   useEffect(() => {
     const verifyRx = async () => {
       try {
-        const response = await axios.get(`/api/pharmacy/verify-public/${id}`);
-        setRx(response.data);
+        const data = await verifyPublicPrescription(id);
+        setRx(data);
       } catch (err) {
         setError(err.response?.data?.message || 'Invalid or revoked prescription code.');
       } finally {
@@ -38,7 +39,7 @@ const PublicVerify = () => {
         </div>
 
         {loading ? (
-          <Loader text="Verifying prescription signature..." />
+          <Loader text="Verifying prescription..." />
         ) : error ? (
           <div className="text-center py-6 space-y-3">
             <AlertCircle className="mx-auto h-12 w-12 text-rose-500" />
@@ -52,23 +53,23 @@ const PublicVerify = () => {
                 <span className="text-[10px] uppercase font-bold text-slate-400">Prescription Status</span>
                 <p className="text-xs font-mono font-bold text-slate-800">{rx?.prescriptionId || id}</p>
               </div>
-              <Badge variant={rx?.status === 'DISPENSED' ? 'success' : 'info'}>
-                {rx?.status}
-              </Badge>
+              <Badge variant={getStatusVariant(rx?.status)}>{rx?.status}</Badge>
             </div>
 
             <div className="space-y-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-sky-600" /> Doctor:</span>
-                <span className="font-bold text-slate-800">{rx?.doctorName || 'Authorized Physician'}</span>
+                <span className="text-slate-500 flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-sky-600" /> Doctor:
+                </span>
+                <span className="font-bold text-slate-800">
+                  {rx?.doctorName ? `Dr. ${rx.doctorName}` : 'Authorized Physician'}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-sky-600" /> Issued:</span>
-                <span className="font-bold text-slate-800">{new Date(rx?.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 flex items-center gap-1.5"><Building className="h-3.5 w-3.5 text-sky-600" /> Clinic:</span>
-                <span className="font-bold text-slate-800">{rx?.clinicName || 'MediScan Medical Group'}</span>
+                <span className="text-slate-500 flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-sky-600" /> Issued:
+                </span>
+                <span className="font-bold text-slate-800">{formatDate(rx?.createdAt)}</span>
               </div>
             </div>
 
@@ -89,7 +90,7 @@ const PublicVerify = () => {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-100 text-center text-[11px] text-emerald-600 font-semibold flex items-center justify-center gap-1">
-              <ShieldCheck className="h-3.5 w-3.5" /> Authentic Cryptographic Record
+              <ShieldCheck className="h-3.5 w-3.5" /> Verified Digital Prescription Record
             </div>
           </div>
         )}

@@ -1,24 +1,22 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Loader from '../common/Loader';
 
 const ProtectedRoute = ({ children }) => {
   const { loading, isAuthenticated } = useAuth();
 
-  console.log("ProtectedRoute");
-  console.log("loading:", loading);
-  console.log("authenticated:", isAuthenticated);
-
   if (loading) {
-    console.log("Loading...");
-    return <div>Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader text="Checking your session..." />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    console.log("Redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  console.log("Rendering children");
   return children;
 };
 

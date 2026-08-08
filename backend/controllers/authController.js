@@ -2,8 +2,12 @@ const User = require("../models/User");
 const DoctorProfile = require("../models/DoctorProfile");
 const PatientProfile = require("../models/PatientProfile");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const jwtConfig = require("../config/jwt");
 const roles = require("../config/roles");
+const { sendEmail } = require("../utils/sendEmail");
+
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 // Helper to generate JWT token
 const generateToken = (id) => {
@@ -113,6 +117,84 @@ exports.loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// @desc Request a password reset email
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    // Respond identically whether or not the account exists, so this
+    // endpoint can't be used to enumerate registered emails.
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      user.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
+      user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+      await user.save();
+
+      const resetUrl = `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/reset-password/${rawToken}`;
+
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your MediScanQR password",
+        text: `Reset your password using this link (valid for 30 minutes): ${resetUrl}`,
+        html: `<p>Reset your MediScanQR password using the link below. This link expires in 30 minutes.</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
+      });
+    }
+
+    return res.status(200).json({
+      message: "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// @desc Reset a password using a token issued by forgotPassword
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: "Token and new password are required.",
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Reset link is invalid or has expired.",
+      });
+    }
+
+    user.password = password; // re-hashed automatically by the pre('save') hook
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password has been reset successfully.",
     });
   } catch (error) {
     return res.status(500).json({

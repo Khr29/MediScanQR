@@ -14,7 +14,6 @@ const ScannerCamera = ({ onScanSuccess, onScanError }) => {
         qrRef.current = html5QrCode;
 
         const cameras = await Html5Qrcode.getCameras();
-        console.log("Available cameras:", cameras);
 
         if (!cameras || cameras.length === 0) {
           throw new Error("No camera found.");
@@ -34,20 +33,13 @@ const ScannerCamera = ({ onScanSuccess, onScanError }) => {
             },
           },
           async (decodedText) => {
-            console.log("QR Scanned:", decodedText);
-
             await html5QrCode.stop();
-
             if (onScanSuccess) {
-              console.log("Calling onScanSuccess...");
               await onScanSuccess(decodedText);
-              console.log("onScanSuccess finished.");
             }
           },
-          (errorMessage) => {
-            // Ignore continuous scan failures
-            // Uncomment if you want to debug:
-            // console.log(errorMessage);
+          () => {
+            // Ignore continuous scan failures (no QR in frame yet) — expected during live scanning.
           }
         );
       } catch (err) {

@@ -16,6 +16,11 @@ const UserSchema = new mongoose.Schema(
     },
     isApproved: { type: Boolean, default: false }, // Doctors & Pharmacies need admin approval
     licenseNumber: { type: String },
+
+    // Password reset flow. Only a hash of the token is stored so a DB read
+    // alone can't be used to reset an account (mirrors how the password itself is stored).
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );

@@ -12,6 +12,12 @@ export const verifyPrescription = async (rxId) => {
   return response.data;
 };
 
+// Unauthenticated verification, used by the public /verify/:id page.
+export const verifyPublicPrescription = async (rxId) => {
+  const response = await api.get(`/pharmacy/verify-public/${rxId}`);
+  return response.data;
+};
+
 export const getPrescriptionDetails = async (rxId) => {
   const response = await api.get(`/pharmacy/prescription/${rxId}`);
   return response.data;

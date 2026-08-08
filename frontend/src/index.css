@@ -8,6 +8,32 @@
   }
 }
 
+@layer components {
+  /* Standard content card used across all dashboards/pages. */
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  /* Icon + label + big number card repeated across dashboards. */
+  .stat-card {
+    @apply card p-5;
+  }
+
+  /* Section heading used above tables/panels within a page. */
+  .section-title {
+    @apply text-sm font-bold text-slate-800 flex items-center gap-2;
+  }
+
+  /* Page-level heading block (title + subtitle) repeated on every page. */
+  .page-heading {
+    @apply text-2xl font-bold text-slate-900;
+  }
+
+  .page-subheading {
+    @apply text-xs text-slate-500 mt-1;
+  }
+}
+
 /* Custom scrollbars for tables and drawers */
 ::-webkit-scrollbar {
   width: 6px;
