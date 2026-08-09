@@ -5,6 +5,7 @@ import DoctorLayout from '../../layouts/DoctorLayout';
 import MedicineSearchInput from '../../components/doctor/MedicineSearchInput';
 import QRDisplay from '../../components/qr/QRDisplay';
 import EmptyState from '../../components/common/EmptyState';
+import Button from '../../components/common/Button';
 import { createPrescription, searchPatients, getDoctorProfile } from '../../services/doctorService';
 import { Trash2, FileCheck, Send, Search, User, ArrowRight, ArrowLeft, AlertTriangle, PenTool } from 'lucide-react';
 
@@ -138,12 +139,9 @@ const CreatePrescription = () => {
 
           <QRDisplay value={qrCodeUrl} />
 
-          <button
-            onClick={resetForm}
-            className="mt-6 rounded-xl bg-slate-800 px-6 py-2.5 text-xs font-semibold text-white hover:bg-slate-900 transition-colors"
-          >
+          <Button onClick={resetForm} className="mt-6">
             Create Another Prescription
-          </button>
+          </Button>
         </div>
       </DoctorLayout>
     );
@@ -177,7 +175,7 @@ const CreatePrescription = () => {
                   idx < step
                     ? 'bg-emerald-500 text-white'
                     : idx === step
-                    ? 'bg-sky-600 text-white'
+                    ? 'bg-brand-500 text-white'
                     : 'bg-slate-200 text-slate-500'
                 }`}
               >
@@ -197,9 +195,9 @@ const CreatePrescription = () => {
             <h2 className="text-sm font-bold text-slate-800">Select Patient</h2>
 
             {selectedPatient ? (
-              <div className="flex items-center justify-between rounded-lg border border-sky-200 bg-sky-50 p-3">
+              <div className="flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 p-3">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-sky-600" />
+                  <User className="h-4 w-4 text-brand-600" />
                   <div>
                     <p className="text-sm font-bold text-slate-900">{selectedPatient.name}</p>
                     <p className="text-xs text-slate-500">{selectedPatient.email}</p>
@@ -222,7 +220,7 @@ const CreatePrescription = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search patient by name or email..."
-                    className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2.5 text-sm focus:border-sky-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none"
                   />
                 </div>
 
@@ -242,13 +240,13 @@ const CreatePrescription = () => {
                           setSelectedPatient({ name: p.user?.name, email: p.user?.email, bloodGroup: p.bloodGroup, age: p.age })
                         }
                         disabled={!p.user?.email}
-                        className="w-full flex items-center justify-between px-4 py-2.5 text-left text-xs hover:bg-sky-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-left text-xs hover:bg-brand-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <div>
                           <span className="font-semibold text-slate-800 block">{p.user?.name || 'Unknown'}</span>
                           <span className="text-slate-400">{p.user?.email || 'No linked account'}</span>
                         </div>
-                        <span className="text-[10px] text-sky-600 font-medium">{p.bloodGroup || ''}</span>
+                        <span className="text-[10px] text-brand-600 font-medium">{p.bloodGroup || ''}</span>
                       </button>
                     ))}
                   </div>
@@ -350,7 +348,7 @@ const CreatePrescription = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Take after meal, rest for 3 days..."
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-sky-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-brand-500 focus:outline-none"
                 ></textarea>
               </div>
 
@@ -369,14 +367,16 @@ const CreatePrescription = () => {
               </div>
             </div>
 
-            <button
-              type="button"
+            <Button
               onClick={handleSubmit}
-              disabled={loading || !doctorProfile?.digitalSignature}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 py-3 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-md"
+              disabled={!doctorProfile?.digitalSignature}
+              loading={loading}
+              icon={Send}
+              fullWidth
+              size="lg"
             >
-              <Send className="h-4 w-4" /> {loading ? 'Issuing Prescription...' : 'Generate & Issue Rx'}
-            </button>
+              {loading ? 'Issuing Prescription...' : 'Generate & Issue Rx'}
+            </Button>
           </div>
         )}
 
@@ -391,13 +391,9 @@ const CreatePrescription = () => {
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-sky-700 transition-colors"
-            >
-              Next <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+            <Button onClick={goNext} icon={ArrowRight} className="flex-row-reverse">
+              Next
+            </Button>
           </div>
         )}
         {step === 2 && (

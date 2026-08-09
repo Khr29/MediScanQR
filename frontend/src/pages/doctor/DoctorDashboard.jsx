@@ -6,6 +6,7 @@ import Table from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
+import Button from '../../components/common/Button';
 import { getDoctorDashboardStats } from '../../services/doctorService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
 
@@ -38,12 +39,9 @@ const DoctorDashboard = () => {
           <h1 className="page-heading">Doctor Dashboard</h1>
           <p className="page-subheading">Overview of your prescriptions and patient queue</p>
         </div>
-        <Link
-          to="/doctor/create-prescription"
-          className="flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-sky-700 transition-colors shadow-sm"
-        >
-          <Plus className="h-4 w-4" /> New Prescription
-        </Link>
+        <Button as={Link} to="/doctor/create-prescription" icon={Plus}>
+          New Prescription
+        </Button>
       </div>
 
       {error ? (
@@ -59,7 +57,7 @@ const DoctorDashboard = () => {
 
           <div>
             <h2 className="section-title mb-3">
-              <Activity className="h-4 w-4 text-sky-600" /> Recent Prescriptions
+              <Activity className="h-4 w-4 text-brand-500" /> Recent Prescriptions
             </h2>
             <Table
               headers={['Prescription ID', 'Patient', 'Medicines', 'Status', 'Issued Date']}

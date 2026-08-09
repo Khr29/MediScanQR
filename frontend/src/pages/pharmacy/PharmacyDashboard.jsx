@@ -8,6 +8,7 @@ import ErrorState from '../../components/common/ErrorState';
 import { getPharmacyDashboardStats } from '../../services/pharmacyService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
 import { QrCode, CheckCircle2, ShieldAlert, Scan } from 'lucide-react';
+import Button from '../../components/common/Button';
 
 const PharmacyDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -38,12 +39,9 @@ const PharmacyDashboard = () => {
           <h1 className="page-heading">Pharmacy Dispense Portal</h1>
           <p className="page-subheading">Scan QR codes to verify and dispense medication</p>
         </div>
-        <Link
-          to="/pharmacy/scan"
-          className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-amber-600 transition-colors shadow-sm"
-        >
-          <Scan className="h-4 w-4" /> Scan QR Pass
-        </Link>
+        <Button as={Link} to="/pharmacy/scan" variant="accent" icon={Scan}>
+          Scan QR Pass
+        </Button>
       </div>
 
       {error ? (
@@ -72,7 +70,7 @@ const PharmacyDashboard = () => {
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{formatDate(rx.updatedAt)}</td>
                   <td className="px-6 py-4 text-xs">
-                    <Link to={`/pharmacy/history/${rx.prescriptionId || rx._id}`} className="font-semibold text-amber-600 hover:underline">
+                    <Link to={`/pharmacy/history/${rx.prescriptionId || rx._id}`} className="font-semibold text-brand-600 hover:underline">
                       View Details
                     </Link>
                   </td>

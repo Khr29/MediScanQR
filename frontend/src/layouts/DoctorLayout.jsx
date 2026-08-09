@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Stethoscope, LayoutDashboard, FilePlus, FileText, Users, BarChart3, UserCircle, FolderClock, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, Users, BarChart3, UserCircle, FolderClock, Menu, X } from 'lucide-react';
+import Logo from '../components/common/Logo';
 import UserMenu from '../components/common/UserMenu';
 import NavItem from '../components/common/NavItem';
 import NavGroup from '../components/common/NavGroup';
@@ -18,8 +19,8 @@ const DoctorLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
+    <div className="min-h-screen bg-surface flex flex-col">
+      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-ink-100 bg-white px-4 sm:px-6 shadow-sm">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMobileOpen((o) => !o)}
@@ -28,14 +29,8 @@ const DoctorLayout = ({ children }) => {
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <Link to="/doctor/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600 border border-sky-200">
-              <Stethoscope className="h-5 w-5" />
-            </div>
-            <div className="leading-none">
-              <p className="text-sm font-bold tracking-tight text-slate-900">MediScanQR</p>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-600">Clinician Portal</p>
-            </div>
+          <Link to="/doctor/dashboard">
+            <Logo subtitle="Clinician Portal" />
           </Link>
         </div>
         <div className="flex items-center gap-1">
@@ -54,7 +49,7 @@ const DoctorLayout = ({ children }) => {
         )}
 
         <aside
-          className={`fixed left-0 top-16 bottom-0 z-50 w-64 overflow-y-auto border-r border-slate-200 bg-white p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
+          className={`fixed left-0 top-16 bottom-0 z-50 w-64 overflow-y-auto border-r border-ink-100 bg-white p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -62,16 +57,16 @@ const DoctorLayout = ({ children }) => {
             Navigation
           </div>
           <nav className="space-y-1" onClick={closeOnLinkClick}>
-            <NavItem to="/doctor/dashboard" icon={LayoutDashboard} label="Dashboard" tone="sky" />
-            <NavItem to="/doctor/patients" icon={Users} label="Patients" tone="sky" />
+            <NavItem to="/doctor/dashboard" icon={LayoutDashboard} label="Dashboard" tone="brand" />
+            <NavItem to="/doctor/patients" icon={Users} label="Patients" tone="brand" />
 
             <NavGroup label="Prescriptions" icon={FolderClock} defaultOpen={inPrescriptions}>
-              <NavItem to="/doctor/create-prescription" icon={FilePlus} label="Create Prescription" tone="sky" indent />
-              <NavItem to="/doctor/history" icon={FileText} label="History" tone="sky" indent />
+              <NavItem to="/doctor/create-prescription" icon={FilePlus} label="Create Prescription" tone="brand" indent />
+              <NavItem to="/doctor/history" icon={FileText} label="History" tone="brand" indent />
             </NavGroup>
 
-            <NavItem to="/doctor/analytics" icon={BarChart3} label="Analytics" tone="sky" />
-            <NavItem to="/doctor/profile" icon={UserCircle} label="Profile" tone="sky" />
+            <NavItem to="/doctor/analytics" icon={BarChart3} label="Analytics" tone="brand" />
+            <NavItem to="/doctor/profile" icon={UserCircle} label="Profile" tone="brand" />
           </nav>
         </aside>
 

@@ -114,6 +114,12 @@ const DispensePortal = () => {
                   <p className="mt-2 text-lg font-bold text-slate-900">
                     {prescription?.doctorName ? `Dr. ${prescription.doctorName}` : 'Authorized Physician'}
                   </p>
+                  {prescription?.doctorSpecialization && (
+                    <p className="mt-1 text-xs text-slate-500">{prescription.doctorSpecialization}</p>
+                  )}
+                  {prescription?.doctorLicenseNumber && (
+                    <p className="text-xs text-slate-400">License: {prescription.doctorLicenseNumber}</p>
+                  )}
                 </div>
                 <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
                   <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Current Status</p>
@@ -121,6 +127,19 @@ const DispensePortal = () => {
                     {isDispensed ? 'Dispensed' : 'Active'}
                   </p>
                 </div>
+              </div>
+
+              <div className="mx-6 mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Doctor Signature</p>
+                {prescription?.doctorSignature ? (
+                  <img
+                    src={prescription.doctorSignature}
+                    alt={`Signature of Dr. ${prescription?.doctorName || 'the prescribing doctor'}`}
+                    className="h-16 object-contain bg-white rounded border border-slate-200 p-1"
+                  />
+                ) : (
+                  <p className="text-xs text-rose-600">No signature on file for this prescription.</p>
+                )}
               </div>
 
               {isDispensed && (
@@ -145,7 +164,7 @@ const DispensePortal = () => {
 
             <div className="card p-6">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
-                <Pill className="h-4 w-4 text-amber-600" /> Prescribed Medications
+                <Pill className="h-4 w-4 text-brand-500" /> Prescribed Medications
               </h2>
 
               <div className="space-y-3">
@@ -170,7 +189,7 @@ const DispensePortal = () => {
                   value={isDispensed ? prescription?.pharmacyNotes || 'No notes recorded.' : notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Batch #4092, substituted brand with patient consent..."
-                  className={`w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-amber-500 focus:outline-none ${
+                  className={`w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-brand-500 focus:outline-none ${
                     isDispensed ? 'bg-slate-100 cursor-not-allowed' : ''
                   }`}
                 ></textarea>

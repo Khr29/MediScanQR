@@ -1,15 +1,20 @@
 const PDFDocument = require("pdfkit");
+const path = require("path");
 
-const BRAND_BLUE = "#0284C7";
-const INK = "#0F172A";
+const LOGO_PATH = path.join(__dirname, "../assets/mediscanqr-logo.png");
+
+// MediScanQR brand system (must match frontend/tailwind.config.js).
+const BRAND_PINK = "#E9005B";
+const ACCENT_CYAN = "#16A9E0";
+const INK = "#171717";
 const MUTED = "#64748B";
 const BORDER = "#E2E8F0";
 const PANEL = "#F8FAFC";
 
 const STATUS_COLORS = {
-  ACTIVE: "#0284C7",
-  DISPENSED: "#059669",
-  EXPIRED: "#E11D48",
+  ACTIVE: ACCENT_CYAN,
+  DISPENSED: "#16A34A",
+  EXPIRED: "#DC2626",
   CANCELLED: "#64748B",
 };
 
@@ -25,29 +30,42 @@ const dataUrlToBuffer = (dataUrl) => {
   }
 };
 
-// Small hand-drawn MediScanQR wordmark (pulse line + name) so the PDF carries
-// the same brand identity as the app, without depending on an external image asset.
-const drawBrandMark = (doc, x, y) => {
-  doc.save();
-  doc.strokeColor(BRAND_BLUE).lineWidth(2.2);
-  const baseY = y + 9;
-  doc
-    .moveTo(x, baseY)
-    .lineTo(x + 5, baseY)
-    .lineTo(x + 8, baseY - 9)
-    .lineTo(x + 12, baseY + 9)
-    .lineTo(x + 15, baseY)
-    .lineTo(x + 20, baseY)
-    .stroke();
-  doc.restore();
+// The source PNG is a 1280x720 canvas with a small wordmark centered in a
+// sea of whitespace - naively `fit`-ing the whole canvas into a header-sized
+// box would shrink the visible logo to near-nothing. Instead we clip to a
+// header-sized rect and draw the full image scaled/positioned so only the
+// wordmark's own bounding box lands inside it (pre-measured from the PNG).
+const LOGO_BOX = { minX: 380, minY: 306, maxX: 841, maxY: 404 };
+const LOGO_NATURAL_WIDTH = 1280;
 
-  doc
-    .fontSize(16)
-    .fillColor(INK)
-    .font("Helvetica-Bold")
-    .text("MediScan", x + 26, y, { continued: true })
-    .fillColor(BRAND_BLUE)
-    .text("QR");
+// Draws the real MediScanQR logo at the given width (height follows the
+// wordmark's own aspect ratio). Returns the rendered height. Falls back to a
+// plain-text wordmark if the asset can't be read, so a missing/corrupt file
+// never breaks prescription PDF generation.
+const drawLogo = (doc, x, y, width) => {
+  const boxW = LOGO_BOX.maxX - LOGO_BOX.minX;
+  const boxH = LOGO_BOX.maxY - LOGO_BOX.minY;
+  const scale = width / boxW;
+  const height = boxH * scale;
+  try {
+    doc.save();
+    doc.rect(x, y, width, height).clip();
+    doc.image(LOGO_PATH, x - LOGO_BOX.minX * scale, y - LOGO_BOX.minY * scale, {
+      width: LOGO_NATURAL_WIDTH * scale,
+    });
+    doc.restore();
+  } catch {
+    doc
+      .fontSize(16)
+      .fillColor(INK)
+      .font("Helvetica-Bold")
+      .text("Medi", x, y, { continued: true })
+      .fillColor(BRAND_PINK)
+      .text("Scan", { continued: true })
+      .fillColor(INK)
+      .text("QR");
+  }
+  return height;
 };
 
 const formatDate = (date) =>
@@ -83,12 +101,12 @@ const createPrescriptionPDF = (prescription) => {
       const left = doc.page.margins.left;
 
       // ---- Header ----
-      drawBrandMark(doc, left, 40);
+      const logoHeight = drawLogo(doc, left, 36, 130);
       doc
         .fontSize(9)
         .font("Helvetica")
         .fillColor(MUTED)
-        .text("Secure QR-Based Digital Prescription", left, 66);
+        .text("Secure QR-Based Digital Prescription", left, 36 + logoHeight + 6);
 
       doc
         .fontSize(20)

@@ -119,11 +119,11 @@ const AdminDashboard = () => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="section-title">
-                <Activity className="h-4 w-4 text-indigo-600" /> Recent Activity
+                <Activity className="h-4 w-4 text-brand-500" /> Recent Activity
               </h2>
               <Link
                 to="/admin/audit-logs"
-                className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1"
               >
                 View Full Audit Log <ArrowRight className="h-3.5 w-3.5" />
               </Link>

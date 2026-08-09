@@ -53,9 +53,9 @@ const PatientDashboard = () => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="section-title">
-                <Activity className="h-4 w-4 text-emerald-600" /> Recent Prescriptions
+                <Activity className="h-4 w-4 text-brand-500" /> Recent Prescriptions
               </h2>
-              <Link to="/patient/prescriptions" className="text-xs font-semibold text-emerald-600 hover:underline flex items-center gap-1">
+              <Link to="/patient/prescriptions" className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1">
                 View All <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -79,7 +79,7 @@ const PatientDashboard = () => {
                   <td className="px-6 py-4 text-xs">
                     <button
                       onClick={() => setSelectedQR(rx)}
-                      className="flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-600 px-2.5 py-1 text-xs font-semibold hover:bg-emerald-100 transition-colors"
+                      className="flex items-center gap-1 rounded-lg bg-accent-50 text-accent-600 px-2.5 py-1 text-xs font-semibold hover:bg-accent-100 transition-colors"
                     >
                       <QrCode className="h-3.5 w-3.5" /> QR Pass
                     </button>
