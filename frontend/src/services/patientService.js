@@ -44,3 +44,19 @@ export const updatePatientProfile = async (profileData) => {
   const response = await api.put('/patient/profile', profileData);
   return response.data;
 };
+
+export const getMedicationSchedule = async (date) => {
+  const response = await api.get('/patient/medication-schedule', {
+    params: date ? { date } : undefined,
+  });
+  return response.data;
+};
+
+export const markDoseTaken = async ({ prescriptionId, medicineId, scheduledFor }) => {
+  const response = await api.post('/patient/medication-schedule/taken', {
+    prescriptionId,
+    medicineId,
+    scheduledFor,
+  });
+  return response.data;
+};

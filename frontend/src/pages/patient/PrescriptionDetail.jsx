@@ -20,7 +20,18 @@ import {
   Award,
   Download,
   PenTool,
+  Clock,
+  Utensils,
+  Hash,
+  FileText,
 } from 'lucide-react';
+
+const FOOD_LABEL = {
+  BEFORE_FOOD: 'Before food',
+  WITH_FOOD: 'With food',
+  AFTER_FOOD: 'After food',
+  ANYTIME: 'Anytime',
+};
 
 const PrescriptionDetail = () => {
   const { id } = useParams();
@@ -167,16 +178,61 @@ const PrescriptionDetail = () => {
 
         <div className="space-y-3">
           {prescription.medicines?.map((med, idx) => (
-            <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="font-bold text-sm text-slate-900 block">{med.name}</span>
-                <span className="text-xs text-slate-500 font-medium">{med.instructions || 'Take as directed by doctor'}</span>
+            <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <span className="font-bold text-sm text-slate-900">{med.name}</span>
+                <span className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs text-brand-700 font-semibold">{med.dosage}</span>
               </div>
-              <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="rounded-lg bg-brand-50 px-2.5 py-1 text-brand-700 font-semibold">{med.dosage}</span>
-                <span className="text-slate-600">{med.frequency}</span>
-                {med.duration && <span className="text-slate-400">({med.duration})</span>}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">Frequency</span>
+                  <span className="text-slate-700 font-medium">{med.frequency || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">Duration</span>
+                  <span className="text-slate-700 font-medium">{med.duration || 'N/A'}</span>
+                </div>
+                {med.quantity && (
+                  <div>
+                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Quantity</span>
+                    <span className="text-slate-700 font-medium flex items-center gap-1">
+                      <Hash className="h-3 w-3 text-slate-400" /> {med.quantity}
+                    </span>
+                  </div>
+                )}
+                {med.foodInstruction && (
+                  <div>
+                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Food Instruction</span>
+                    <span className="text-slate-700 font-medium flex items-center gap-1">
+                      <Utensils className="h-3 w-3 text-slate-400" /> {FOOD_LABEL[med.foodInstruction] || med.foodInstruction}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {Array.isArray(med.displayTimes) && med.displayTimes.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-200">
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase mb-1.5">Scheduled Times</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {med.displayTimes.map((time, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
+                      >
+                        <Clock className="h-3 w-3 text-brand-500" /> {time}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {med.instructions && (
+                <div className="mt-3 pt-3 border-t border-slate-200 flex items-start gap-1.5 text-xs text-slate-600">
+                  <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
+                  <span>{med.instructions}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>

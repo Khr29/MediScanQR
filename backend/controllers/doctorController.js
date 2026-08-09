@@ -106,6 +106,7 @@ exports.createPrescription = async (req, res) => {
       title: "New Prescription",
       message: `Dr. ${req.user.name} issued you a new prescription (${rxId}).`,
       type: "NEW_RX",
+      relatedPrescription: prescription._id,
     });
 
     return res.status(201).json({
@@ -316,6 +317,7 @@ exports.cancelPrescription = async (req, res) => {
       title: "Prescription Cancelled",
       message: `Your prescription ${prescription.prescriptionId} was cancelled by Dr. ${req.user.name}.`,
       type: "SYSTEM",
+      relatedPrescription: prescription._id,
     });
 
     return res.status(200).json({

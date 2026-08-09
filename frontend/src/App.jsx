@@ -29,6 +29,7 @@ import DoctorProfile from './pages/doctor/DoctorProfile';
 import PatientDashboard from './pages/patient/PatientDashboard';
 import MyPrescriptions from './pages/patient/MyPrescriptions';
 import PrescriptionDetail from './pages/patient/PrescriptionDetail';
+import MedicationSchedule from './pages/patient/MedicationSchedule';
 import MedicineHistory from './pages/patient/MedicineHistory';
 import PatientProfile from './pages/patient/PatientProfile';
 import PatientNotifications from './pages/patient/PatientNotifications';
@@ -158,6 +159,16 @@ function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['PATIENT']}>
                     <PrescriptionDetail />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patient/schedule"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['PATIENT']}>
+                    <MedicationSchedule />
                   </RoleGuard>
                 </ProtectedRoute>
               }

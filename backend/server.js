@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
+const { startMedicationReminderScheduler } = require("./utils/medicationReminderScheduler");
 
 // Load environment variables
 dotenv.config();
@@ -62,4 +63,5 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 MediScanQR Server running on http://localhost:${PORT}`);
+  startMedicationReminderScheduler();
 });

@@ -12,11 +12,20 @@ import { formatDate } from '../../utils/formatters';
 import { downloadBlob } from '../../utils/download';
 import { Search, QrCode, Eye, Download, Loader2 } from 'lucide-react';
 
+const STATUS_TABS = [
+  { key: 'ALL', label: 'All' },
+  { key: 'ACTIVE', label: 'Active' },
+  { key: 'DISPENSED', label: 'Dispensed' },
+  { key: 'EXPIRED', label: 'Expired' },
+  { key: 'CANCELLED', label: 'Cancelled' },
+];
+
 const MyPrescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedQR, setSelectedQR] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
 

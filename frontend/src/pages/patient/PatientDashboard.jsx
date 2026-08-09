@@ -1,17 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Clock, CheckCircle2, QrCode, Activity, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { FileText, Clock, CheckCircle2, QrCode, Activity, ArrowRight, Pill, Utensils, CalendarClock } from 'lucide-react';
 import PatientLayout from '../../layouts/PatientLayout';
 import Table from '../../components/common/Table';
 import StatusBadge from '../../components/common/StatusBadge';
 import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
 import Button from '../../components/common/Button';
+import Badge from '../../components/common/Badge';
 import Avatar from '../../components/common/Avatar';
+import { SkeletonBar, SkeletonCircle } from '../../components/common/Skeleton';
 import QRModal from '../../components/patient/QRModal';
-import { getPatientDashboardStats } from '../../services/patientService';
+import { getPatientDashboardStats, markDoseTaken } from '../../services/patientService';
 import { formatDate } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
+
+const FOOD_LABEL = {
+  BEFORE_FOOD: 'Before food',
+  WITH_FOOD: 'With food',
+  AFTER_FOOD: 'After food',
+  ANYTIME: 'Anytime',
+};
+
+const formatTime = (date) =>
+  new Date(date).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 // Real wall-clock greeting — no invented data, just framing around the
 // authenticated user's actual name from AuthContext.
@@ -28,6 +41,7 @@ const PatientDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedQR, setSelectedQR] = useState(null);
+  const [marking, setMarking] = useState(false);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -45,6 +59,25 @@ const PatientDashboard = () => {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  const handleMarkTaken = async () => {
+    const dose = stats?.nextMedication;
+    if (!dose) return;
+    setMarking(true);
+    try {
+      await markDoseTaken({
+        prescriptionId: dose.prescriptionId,
+        medicineId: dose.medicineId,
+        scheduledFor: dose.scheduledFor,
+      });
+      toast.success(`✓ Marked ${dose.medicineName} as taken.`);
+      await fetchStats();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Unable to mark this dose as taken.');
+    } finally {
+      setMarking(false);
+    }
+  };
 
   return (
     <PatientLayout>
@@ -64,10 +97,91 @@ const PatientDashboard = () => {
         <ErrorState message={error} onRetry={fetchStats} />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {loading ? (
+            <div className="card flex items-center gap-4 p-5 mb-6">
+              <SkeletonCircle className="h-11 w-11 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <SkeletonBar className="h-3.5 w-40" />
+                <SkeletonBar className="h-3 w-64" />
+              </div>
+              <SkeletonBar className="h-9 w-28 rounded-lg" />
+            </div>
+          ) : stats?.nextMedication ? (
+            <div className="card flex flex-wrap items-center gap-4 p-5 mb-6 border-brand-200">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                <Pill className="h-5 w-5" />
+              </div>
+              <div className="min-w-[12rem] flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-brand-600">Next Medication</span>
+                  {stats.nextMedication.overdue && (
+                    <Badge variant="danger" className="text-[10px]">
+                      Overdue
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm font-bold text-ink-900 mt-0.5">
+                  {stats.nextMedication.medicineName} · {formatTime(stats.nextMedication.scheduledFor)}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                  <span>{stats.nextMedication.dosage}</span>
+                  {stats.nextMedication.foodInstruction && (
+                    <span className="flex items-center gap-1">
+                      <Utensils className="h-3 w-3" /> {FOOD_LABEL[stats.nextMedication.foodInstruction] || stats.nextMedication.foodInstruction}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Button size="sm" onClick={handleMarkTaken} loading={marking}>
+                Mark as Taken
+              </Button>
+            </div>
+          ) : (
+            <div className="card flex items-center gap-4 p-5 mb-6">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-ink-900">You're all caught up</p>
+                <p className="text-xs text-slate-500">No upcoming doses in the next 7 days. Great job staying on track.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard icon={FileText} label="Total Prescriptions" value={stats?.totalPrescriptions} tone="sky" loading={loading} />
             <StatCard icon={Clock} label="Active / Pending" value={stats?.activePrescriptions} tone="amber" loading={loading} hero />
             <StatCard icon={CheckCircle2} label="Fulfilled / Dispensed" value={stats?.dispensedPrescriptions} tone="emerald" loading={loading} />
+
+            <div className="stat-card">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Today's Progress</span>
+                <div className="rounded-lg p-2 bg-accent-50 text-accent-600">
+                  <CalendarClock className="h-5 w-5" />
+                </div>
+              </div>
+              {loading ? (
+                <SkeletonBar className="mt-3 h-8 w-16" />
+              ) : (
+                <p className="text-[28px] leading-tight font-bold text-ink-900 mt-2">
+                  {stats?.todaysProgress?.taken ?? 0}/{stats?.todaysProgress?.total ?? 0}
+                </p>
+              )}
+              {!loading && (
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-brand-500 transition-all duration-300"
+                    style={{
+                      width: `${
+                        stats?.todaysProgress?.total
+                          ? Math.round((stats.todaysProgress.taken / stats.todaysProgress.total) * 100)
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div>

@@ -77,6 +77,25 @@ const PrescriptionSchema = new mongoose.Schema(
         instructions: {
           type: String,
         },
+        // --- Optional scheduling fields (all backward-compatible additions) ---
+        // Quantity taken per dose, e.g. "1 tablet" - distinct from `dosage`
+        // (the drug strength, e.g. "10mg").
+        quantity: {
+          type: String,
+        },
+        // Explicit clock times (HH:mm, 24h) the doctor wants this dose taken
+        // at, e.g. ["08:00", "20:00"]. When not provided, the patient-portal
+        // schedule falls back to deriving sensible default times from
+        // `frequency` (see backend/utils/medicationSchedule.js) rather than
+        // inventing arbitrary data.
+        times: {
+          type: [String],
+          default: undefined,
+        },
+        foodInstruction: {
+          type: String,
+          enum: ["BEFORE_FOOD", "WITH_FOOD", "AFTER_FOOD", "ANYTIME"],
+        },
       },
     ],
 

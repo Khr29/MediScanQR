@@ -215,6 +215,7 @@ exports.dispensePrescription = async (req, res) => {
       title: "Prescription Dispensed",
       message: `Your prescription ${prescription.prescriptionId} has been dispensed.`,
       type: "DISPENSED",
+      relatedPrescription: prescription._id,
     });
 
     return res.status(200).json({

@@ -9,6 +9,8 @@ const {
   getPrescriptionById,
   getMedicineHistory,
   downloadPrescriptionPdf,
+  getMedicationSchedule,
+  markDoseTaken,
 } = require("../controllers/patientController");
 
 const { verifyToken } = require("../middleware/authMiddleware");
@@ -48,6 +50,20 @@ router.get(
   verifyToken,
   requireRole(roles.PATIENT),
   getMedicineHistory,
+);
+
+router.get(
+  "/medication-schedule",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  getMedicationSchedule,
+);
+
+router.post(
+  "/medication-schedule/taken",
+  verifyToken,
+  requireRole(roles.PATIENT),
+  markDoseTaken,
 );
 
 router.get(
