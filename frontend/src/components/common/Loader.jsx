@@ -10,7 +10,7 @@ const Loader = ({ size = 'medium', text = 'Loading...' }) => {
   return (
     <div className="flex flex-col items-center justify-center p-6 space-y-3">
       <div
-        className={`animate-spin rounded-full border-sky-600 border-t-transparent ${
+        className={`animate-spin rounded-full border-brand-500 border-t-transparent ${
           sizeClasses[size] || sizeClasses.medium
         }`}
       ></div>

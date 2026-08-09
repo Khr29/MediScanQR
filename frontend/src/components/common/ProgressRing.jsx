@@ -1,11 +1,13 @@
 import React from 'react';
 
+// Legacy tone-name keys kept as-is (callers already pass these), remapped to
+// the new brand/status palette: sky->brand pink, indigo->accent cyan.
 const STROKE_TONES = {
-  sky: '#0284c7',
-  emerald: '#059669',
-  amber: '#d97706',
-  indigo: '#4f46e5',
-  rose: '#e11d48',
+  sky: '#e9005b',
+  emerald: '#16a34a',
+  amber: '#f59e0b',
+  indigo: '#16a9e0',
+  rose: '#dc2626',
 };
 
 // Dependency-free SVG ring chart used across Admin/Doctor analytics — avoids
@@ -20,7 +22,7 @@ const ProgressRing = ({ value = 0, size = 96, strokeWidth = 10, tone = 'sky', la
     <div className="flex flex-col items-center">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={strokeWidth} />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e5e5e5" strokeWidth={strokeWidth} />
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -34,7 +36,7 @@ const ProgressRing = ({ value = 0, size = 96, strokeWidth = 10, tone = 'sky', la
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xl font-bold text-slate-900">
+          <span className="text-xl font-bold text-ink-900">
             {clamped % 1 === 0 ? clamped : clamped.toFixed(1)}%
           </span>
         </div>

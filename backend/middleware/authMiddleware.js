@@ -21,6 +21,8 @@ const verifyToken = async (req, res, next) => {
         .json({ message: "Invalid or expired session token." });
     }
 
+    console.log("[DIAG verifyToken] decoded JWT payload:", decoded);
+    console.log("[DIAG verifyToken] req.user.role set to:", JSON.stringify(user.role), "typeof:", typeof user.role);
     req.user = user;
     next();
   } catch (err) {

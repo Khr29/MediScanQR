@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   // Check for existing token on app start
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (token) {
         try {
           const userData = await getCurrentUser();
@@ -28,10 +28,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const data = await apiLogin(credentials);
 
-    // 💡 SAVE TOKEN TO LOCALSTORAGE HERE:
+    // Stored per-tab (sessionStorage) rather than shared across tabs
+    // (localStorage), so logging into a different role in one tab can't
+    // silently overwrite the token another open tab is relying on.
     const token = data?.token || data?.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
     }
 
     setUser(data.user);
@@ -40,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     apiLogout();
-    localStorage.removeItem('token'); // Ensure token is wiped on logout
+    sessionStorage.removeItem('token'); // Ensure token is wiped on logout
     setUser(null);
   };
 

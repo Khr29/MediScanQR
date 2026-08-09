@@ -4,14 +4,14 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-500 selection:text-white;
+    @apply bg-surface text-ink-900 font-sans antialiased selection:bg-brand-500 selection:text-white;
   }
 }
 
 @layer components {
   /* Standard content card used across all dashboards/pages. */
   .card {
-    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-xl border border-ink-100 bg-white shadow-sm;
   }
 
   /* Icon + label + big number card repeated across dashboards. */
@@ -21,12 +21,12 @@
 
   /* Section heading used above tables/panels within a page. */
   .section-title {
-    @apply text-sm font-bold text-slate-800 flex items-center gap-2;
+    @apply text-sm font-bold text-ink-900 flex items-center gap-2;
   }
 
   /* Page-level heading block (title + subtitle) repeated on every page. */
   .page-heading {
-    @apply text-2xl font-bold text-slate-900;
+    @apply text-[32px] leading-tight font-bold text-ink-900;
   }
 
   .page-subheading {
@@ -45,10 +45,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4d4d4;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a3a3a3;
 }

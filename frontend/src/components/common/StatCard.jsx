@@ -1,14 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { SkeletonBar } from './Skeleton';
 
 // Static class map — Tailwind's JIT compiler only picks up class names it can
 // see literally in source, so tone -> classes must be a lookup, not a template string.
+// `sky` (legacy tone name) now renders as brand pink, `indigo` as accent cyan —
+// kept as the same prop values pages already pass to limit churn.
 const TONES = {
-  sky: 'bg-sky-100 text-sky-600',
-  emerald: 'bg-emerald-100 text-emerald-600',
-  amber: 'bg-amber-100 text-amber-600',
-  indigo: 'bg-indigo-100 text-indigo-600',
-  rose: 'bg-rose-100 text-rose-600',
+  sky: 'bg-brand-50 text-brand-600',
+  emerald: 'bg-emerald-100 text-emerald-700',
+  amber: 'bg-amber-100 text-amber-700',
+  indigo: 'bg-accent-50 text-accent-600',
+  rose: 'bg-rose-100 text-rose-700',
   slate: 'bg-slate-100 text-slate-600',
 };
 
@@ -24,9 +27,9 @@ const StatCard = ({ icon: Icon, label, value, tone = 'sky', to = null, loading =
         )}
       </div>
       {loading ? (
-        <div className="mt-3 h-7 w-16 animate-pulse rounded bg-slate-100" />
+        <SkeletonBar className="mt-3 h-8 w-16" />
       ) : (
-        <p className="text-2xl font-bold text-slate-900 mt-2">{value ?? 0}</p>
+        <p className="text-[28px] leading-tight font-bold text-ink-900 mt-2">{value ?? 0}</p>
       )}
     </>
   );

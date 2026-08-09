@@ -15,11 +15,15 @@ const UserMenu = ({ dark = false }) => {
       className={`flex items-center gap-3 border-l pl-4 ${dark ? 'border-white/10' : 'border-slate-200'}`}
     >
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-300">
+        <div
+          className={`flex h-8 w-8 items-center justify-center rounded-full font-bold border ${
+            dark ? 'bg-white/10 text-white border-white/10' : 'bg-brand-50 text-brand-600 border-brand-200'
+          }`}
+        >
           <User className="h-4 w-4" />
         </div>
         <div className="hidden text-left md:block">
-          <p className={`text-sm font-semibold leading-none ${dark ? 'text-white' : 'text-slate-800'}`}>
+          <p className={`text-sm font-semibold leading-none ${dark ? 'text-white' : 'text-ink-900'}`}>
             {user.name}
           </p>
           <p className={`text-xs mt-0.5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{user.email}</p>

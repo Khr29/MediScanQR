@@ -16,8 +16,8 @@ export const logoutUser = async () => {
   } catch (err) {
     console.warn('Logout endpoint failed:', err);
   } finally {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   }
 };
 

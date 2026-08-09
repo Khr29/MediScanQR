@@ -3,35 +3,35 @@ import { Link, useLocation } from 'react-router-dom';
 
 // Static class maps — Tailwind's JIT compiler needs literal class names, not
 // template strings, so tone/theme -> classes must be lookups.
+// One brand tone (pink) is used for the active-nav indicator across all four
+// portals; `accent` (cyan) is available for QR/scan-specific items.
 const LIGHT_TONES = {
-  sky: 'bg-sky-50 text-sky-700 border-sky-600',
-  emerald: 'bg-emerald-50 text-emerald-700 border-emerald-600',
-  amber: 'bg-amber-50 text-amber-700 border-amber-600',
-  indigo: 'bg-indigo-50 text-indigo-700 border-indigo-600',
+  brand: 'bg-brand-50 text-brand-600 border-brand-500',
+  accent: 'bg-accent-50 text-accent-600 border-accent-500',
 };
 const LIGHT_ICON_TONES = {
-  sky: 'text-sky-600',
-  emerald: 'text-emerald-600',
-  amber: 'text-amber-600',
-  indigo: 'text-indigo-600',
+  brand: 'text-brand-500',
+  accent: 'text-accent-500',
 };
 const DARK_TONES = {
-  indigo: 'bg-white/10 text-white border-indigo-400',
+  brand: 'bg-white/10 text-white border-brand-400',
+  accent: 'bg-white/10 text-white border-accent-400',
 };
 const DARK_ICON_TONES = {
-  indigo: 'text-indigo-300',
+  brand: 'text-brand-400',
+  accent: 'text-accent-400',
 };
 
 // Single sidebar nav row, reused by every role layout. Each layout still owns
 // its own nav tree/grouping/labels — only this leaf row's markup is shared.
-const NavItem = ({ to, icon: Icon, label, tone = 'sky', dark = false, indent = false }) => {
+const NavItem = ({ to, icon: Icon, label, tone = 'brand', dark = false, indent = false }) => {
   const location = useLocation();
   const active = location.pathname === to;
 
-  const toneClasses = dark ? DARK_TONES[tone] || DARK_TONES.indigo : LIGHT_TONES[tone] || LIGHT_TONES.sky;
+  const toneClasses = dark ? DARK_TONES[tone] || DARK_TONES.brand : LIGHT_TONES[tone] || LIGHT_TONES.brand;
   const iconToneClasses = dark
-    ? DARK_ICON_TONES[tone] || DARK_ICON_TONES.indigo
-    : LIGHT_ICON_TONES[tone] || LIGHT_ICON_TONES.sky;
+    ? DARK_ICON_TONES[tone] || DARK_ICON_TONES.brand
+    : LIGHT_ICON_TONES[tone] || LIGHT_ICON_TONES.brand;
 
   const inactiveClasses = dark
     ? 'text-slate-300 hover:bg-white/5 hover:text-white border-transparent'

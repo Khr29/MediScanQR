@@ -31,16 +31,19 @@ export const getStatusVariant = (status) => {
   switch (status?.toUpperCase()) {
     case 'ISSUED':
     case 'ACTIVE':
-    case 'PENDING':
-      return 'warning';
     case 'DISPENSED':
     case 'COMPLETED':
     case 'APPROVED':
+    case 'VERIFIED':
     case 'SUCCESS':
       return 'success';
+    case 'PENDING':
+    case 'WAITING':
+      return 'warning';
     case 'EXPIRED':
     case 'REVOKED':
     case 'REJECTED':
+    case 'INVALID':
     case 'FAILED':
       return 'danger';
     // CANCELLED falls through to the default 'neutral' - a deliberate doctor
@@ -57,17 +60,23 @@ export const getStatusBadgeClass = (status) => {
   switch (status?.toUpperCase()) {
     case 'ISSUED':
     case 'ACTIVE':
-    case 'PENDING':
-      return 'bg-amber-100 text-amber-800 border-amber-300';
     case 'DISPENSED':
     case 'COMPLETED':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    case 'APPROVED':
+    case 'VERIFIED':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'PENDING':
+    case 'WAITING':
+      return 'bg-amber-50 text-amber-700 border-amber-200';
     case 'EXPIRED':
     case 'REVOKED':
-      return 'bg-rose-100 text-rose-800 border-rose-300';
+    case 'REJECTED':
+    case 'INVALID':
+    case 'FAILED':
+      return 'bg-rose-50 text-rose-700 border-rose-200';
     case 'CANCELLED':
     default:
-      return 'bg-slate-100 text-slate-800 border-slate-300';
+      return 'bg-slate-100 text-slate-600 border-slate-200';
   }
 };
 
