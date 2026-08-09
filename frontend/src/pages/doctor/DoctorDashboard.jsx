@@ -7,6 +7,7 @@ import Badge from '../../components/common/Badge';
 import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
 import Button from '../../components/common/Button';
+import Avatar from '../../components/common/Avatar';
 import { getDoctorDashboardStats } from '../../services/doctorService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
 
@@ -34,12 +35,12 @@ const DoctorDashboard = () => {
 
   return (
     <DoctorLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="page-heading">Doctor Dashboard</h1>
           <p className="page-subheading">Overview of your prescriptions and patient queue</p>
         </div>
-        <Button as={Link} to="/doctor/create-prescription" icon={Plus}>
+        <Button as={Link} to="/doctor/create-prescription" icon={Plus} bracket>
           New Prescription
         </Button>
       </div>
@@ -49,7 +50,7 @@ const DoctorDashboard = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard icon={FileText} label="Total Prescriptions" value={stats?.totalPrescriptions} tone="sky" loading={loading} />
+            <StatCard icon={FileText} label="Total Prescriptions" value={stats?.totalPrescriptions} tone="sky" loading={loading} hero />
             <StatCard icon={FilePlus} label="Issued Today" value={stats?.todayPrescriptions} tone="emerald" loading={loading} />
             <StatCard icon={Users} label="Total Patients" value={stats?.totalPatients} tone="indigo" loading={loading} />
             <StatCard icon={TrendingUp} label="Dispensed Count" value={stats?.dispensedCount} tone="amber" loading={loading} />
@@ -67,7 +68,12 @@ const DoctorDashboard = () => {
               {stats?.recentPrescriptions?.map((rx) => (
                 <tr key={rx._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId || rx._id}</td>
-                  <td className="px-6 py-4 text-xs font-medium text-slate-700">{rx.patient?.name || rx.patientName || 'N/A'}</td>
+                  <td className="px-6 py-4 text-xs font-medium text-slate-700">
+                    <span className="flex items-center gap-2">
+                      <Avatar name={rx.patient?.name || rx.patientName} size="sm" />
+                      {rx.patient?.name || rx.patientName || 'N/A'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0} Meds</td>
                   <td className="px-6 py-4 text-xs">
                     <Badge variant={getStatusVariant(rx.status)}>{rx.status}</Badge>

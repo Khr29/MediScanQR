@@ -7,8 +7,9 @@ import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
 import { getPharmacyDashboardStats } from '../../services/pharmacyService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
-import { QrCode, CheckCircle2, ShieldAlert, Scan } from 'lucide-react';
+import { QrCode, CheckCircle2, ShieldAlert, Scan, ClipboardList } from 'lucide-react';
 import Button from '../../components/common/Button';
+import Avatar from '../../components/common/Avatar';
 
 const PharmacyDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -34,12 +35,12 @@ const PharmacyDashboard = () => {
 
   return (
     <PharmacyLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="page-heading">Pharmacy Dispense Portal</h1>
           <p className="page-subheading">Scan QR codes to verify and dispense medication</p>
         </div>
-        <Button as={Link} to="/pharmacy/scan" variant="accent" icon={Scan}>
+        <Button as={Link} to="/pharmacy/scan" variant="accent" icon={Scan} bracket>
           Scan QR Pass
         </Button>
       </div>
@@ -48,7 +49,8 @@ const PharmacyDashboard = () => {
         <ErrorState message={error} onRetry={fetchStats} />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard icon={ClipboardList} label="Pending Verification" value={stats?.activePrescriptions} loading={loading} hero />
             <StatCard icon={QrCode} label="Today's Scans" value={stats?.todaysScans} tone="amber" loading={loading} />
             <StatCard icon={CheckCircle2} label="Total Dispensed" value={stats?.totalDispensed} tone="emerald" loading={loading} />
             <StatCard icon={ShieldAlert} label="Invalid / Rejected" value={stats?.invalidRejected} tone="rose" loading={loading} />
@@ -64,7 +66,12 @@ const PharmacyDashboard = () => {
               {stats?.recentScans?.map((rx) => (
                 <tr key={rx._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId || rx._id}</td>
-                  <td className="px-6 py-4 text-xs font-medium text-slate-700">{rx.patient?.name || rx.patientName || 'N/A'}</td>
+                  <td className="px-6 py-4 text-xs font-medium text-slate-700">
+                    <span className="flex items-center gap-2">
+                      <Avatar name={rx.patient?.name || rx.patientName} size="sm" />
+                      {rx.patient?.name || rx.patientName || 'N/A'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-xs">
                     <Badge variant={getStatusVariant(rx.status)}>{rx.status}</Badge>
                   </td>

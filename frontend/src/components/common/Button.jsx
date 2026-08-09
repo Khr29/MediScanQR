@@ -26,6 +26,7 @@ const Button = ({
   disabled = false,
   icon: Icon,
   fullWidth = false,
+  bracket = false,
   className = '',
   children,
   ...rest
@@ -35,7 +36,7 @@ const Button = ({
       disabled={disabled || loading}
       className={`inline-flex items-center justify-center rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
         VARIANTS[variant] || VARIANTS.primary
-      } ${SIZES[size] || SIZES.md} ${fullWidth ? 'w-full' : ''} ${className}`}
+      } ${SIZES[size] || SIZES.md} ${fullWidth ? 'w-full' : ''} ${bracket ? 'corner-bracket' : ''} ${className}`}
       {...rest}
     >
       {loading ? (

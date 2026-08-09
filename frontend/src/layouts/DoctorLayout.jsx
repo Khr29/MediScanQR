@@ -49,24 +49,24 @@ const DoctorLayout = ({ children }) => {
         )}
 
         <aside
-          className={`fixed left-0 top-16 bottom-0 z-50 w-64 overflow-y-auto border-r border-ink-100 bg-white p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
+          className={`fixed left-0 top-16 bottom-0 z-50 w-64 overflow-y-auto bg-ink-900 p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="mb-4 px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="mb-4 px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500">
             Navigation
           </div>
           <nav className="space-y-1" onClick={closeOnLinkClick}>
-            <NavItem to="/doctor/dashboard" icon={LayoutDashboard} label="Dashboard" tone="brand" />
-            <NavItem to="/doctor/patients" icon={Users} label="Patients" tone="brand" />
+            <NavItem to="/doctor/dashboard" icon={LayoutDashboard} label="Dashboard" tone="brand" dark />
+            <NavItem to="/doctor/patients" icon={Users} label="Patients" tone="brand" dark />
 
-            <NavGroup label="Prescriptions" icon={FolderClock} defaultOpen={inPrescriptions}>
-              <NavItem to="/doctor/create-prescription" icon={FilePlus} label="Create Prescription" tone="brand" indent />
-              <NavItem to="/doctor/history" icon={FileText} label="History" tone="brand" indent />
+            <NavGroup label="Prescriptions" icon={FolderClock} defaultOpen={inPrescriptions} dark>
+              <NavItem to="/doctor/create-prescription" icon={FilePlus} label="Create Prescription" tone="brand" dark indent />
+              <NavItem to="/doctor/history" icon={FileText} label="History" tone="brand" dark indent />
             </NavGroup>
 
-            <NavItem to="/doctor/analytics" icon={BarChart3} label="Analytics" tone="brand" />
-            <NavItem to="/doctor/profile" icon={UserCircle} label="Profile" tone="brand" />
+            <NavItem to="/doctor/analytics" icon={BarChart3} label="Analytics" tone="brand" dark />
+            <NavItem to="/doctor/profile" icon={UserCircle} label="Profile" tone="brand" dark />
           </nav>
         </aside>
 

@@ -6,6 +6,8 @@ import Table from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
+import Button from '../../components/common/Button';
+import Avatar from '../../components/common/Avatar';
 import QRModal from '../../components/patient/QRModal';
 import { getPatientDashboardStats } from '../../services/patientService';
 import { getStatusVariant, formatDate } from '../../utils/formatters';
@@ -35,9 +37,14 @@ const PatientDashboard = () => {
 
   return (
     <PatientLayout>
-      <div className="mb-8">
-        <h1 className="page-heading">Welcome back</h1>
-        <p className="page-subheading">Here's an overview of your active digital prescriptions</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="page-heading">Welcome back</h1>
+          <p className="page-subheading">Here's an overview of your active digital prescriptions</p>
+        </div>
+        <Button as={Link} to="/patient/prescriptions" icon={FileText} bracket>
+          View My Prescriptions
+        </Button>
       </div>
 
       {error ? (
@@ -46,7 +53,7 @@ const PatientDashboard = () => {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <StatCard icon={FileText} label="Total Prescriptions" value={stats?.totalPrescriptions} tone="sky" loading={loading} />
-            <StatCard icon={Clock} label="Active / Pending" value={stats?.activePrescriptions} tone="amber" loading={loading} />
+            <StatCard icon={Clock} label="Active / Pending" value={stats?.activePrescriptions} tone="amber" loading={loading} hero />
             <StatCard icon={CheckCircle2} label="Fulfilled / Dispensed" value={stats?.dispensedPrescriptions} tone="emerald" loading={loading} />
           </div>
 
@@ -69,7 +76,10 @@ const PatientDashboard = () => {
                 <tr key={rx._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">{rx.prescriptionId || rx._id}</td>
                   <td className="px-6 py-4 text-xs font-semibold text-slate-800">
-                    {rx.doctorName ? `Dr. ${rx.doctorName}` : 'Authorized Physician'}
+                    <span className="flex items-center gap-2">
+                      <Avatar name={rx.doctorName} size="sm" />
+                      {rx.doctorName ? `Dr. ${rx.doctorName}` : 'Authorized Physician'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0} Meds</td>
                   <td className="px-6 py-4 text-xs">

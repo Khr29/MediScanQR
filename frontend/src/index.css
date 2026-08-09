@@ -26,11 +26,50 @@
 
   /* Page-level heading block (title + subtitle) repeated on every page. */
   .page-heading {
-    @apply text-[32px] leading-tight font-bold text-ink-900;
+    @apply text-[32px] leading-tight font-bold text-ink-900 font-display;
   }
 
   .page-subheading {
     @apply text-xs text-slate-500 mt-1;
+  }
+
+  /* Scanner-viewfinder corner brackets — the app's signature visual motif,
+     evoking the QR-scan frame. Reserve for ONE primary CTA per page (e.g.
+     "New Prescription", "Scan Prescription"); never on secondary buttons.
+     Drawn with two pseudo-elements (2 corners each) so no extra markup is
+     needed on the button itself. */
+  .corner-bracket {
+    position: relative;
+  }
+
+  .corner-bracket::before,
+  .corner-bracket::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-size: 9px 2px, 2px 9px, 9px 2px, 2px 9px;
+  }
+
+  .corner-bracket::before {
+    /* Top-left + bottom-right corners */
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    background-position: top left, top left, bottom right, bottom right;
+  }
+
+  .corner-bracket::after {
+    /* Top-right + bottom-left corners */
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+      linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    background-position: top right, top right, bottom left, bottom left;
   }
 }
 

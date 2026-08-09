@@ -61,6 +61,23 @@ export default {
           "Roboto",
           "sans-serif",
         ],
+        // Headings and hero stat numbers — a bolder, more distinctive display
+        // face than body copy, without replacing Inter everywhere.
+        display: [
+          "Space Grotesk",
+          "Inter",
+          "ui-sans-serif",
+          "sans-serif",
+        ],
+        // Prescription/Rx IDs and other identifiers that benefit from
+        // fixed-width, unambiguous glyphs.
+        mono: [
+          "JetBrains Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace",
+        ],
       },
     },
   },

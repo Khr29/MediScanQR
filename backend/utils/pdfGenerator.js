@@ -1,7 +1,4 @@
 const PDFDocument = require("pdfkit");
-const path = require("path");
-
-const LOGO_PATH = path.join(__dirname, "../assets/mediscanqr-logo.png");
 
 // MediScanQR brand system (must match frontend/tailwind.config.js).
 const BRAND_PINK = "#E9005B";
@@ -30,42 +27,50 @@ const dataUrlToBuffer = (dataUrl) => {
   }
 };
 
-// The source PNG is a 1280x720 canvas with a small wordmark centered in a
-// sea of whitespace - naively `fit`-ing the whole canvas into a header-sized
-// box would shrink the visible logo to near-nothing. Instead we clip to a
-// header-sized rect and draw the full image scaled/positioned so only the
-// wordmark's own bounding box lands inside it (pre-measured from the PNG).
-const LOGO_BOX = { minX: 380, minY: 306, maxX: 841, maxY: 404 };
-const LOGO_NATURAL_WIDTH = 1280;
+// Draws the MediScanQR mark as vector shapes - the same design as
+// frontend/src/components/common/Logo.jsx's LogoMark - rather than embedding
+// a raster asset, so it stays crisp at any size and the two never drift out
+// of sync. Returns the rendered height (== iconSize, the wordmark's cap height).
+const drawLogo = (doc, x, y, iconSize) => {
+  const bracket = iconSize * 0.32;
+  const stroke = Math.max(1.2, iconSize * 0.09);
+  const cx = x + iconSize / 2;
+  const cy = y + iconSize / 2;
+  const r = iconSize * 0.34;
 
-// Draws the real MediScanQR logo at the given width (height follows the
-// wordmark's own aspect ratio). Returns the rendered height. Falls back to a
-// plain-text wordmark if the asset can't be read, so a missing/corrupt file
-// never breaks prescription PDF generation.
-const drawLogo = (doc, x, y, width) => {
-  const boxW = LOGO_BOX.maxX - LOGO_BOX.minX;
-  const boxH = LOGO_BOX.maxY - LOGO_BOX.minY;
-  const scale = width / boxW;
-  const height = boxH * scale;
-  try {
-    doc.save();
-    doc.rect(x, y, width, height).clip();
-    doc.image(LOGO_PATH, x - LOGO_BOX.minX * scale, y - LOGO_BOX.minY * scale, {
-      width: LOGO_NATURAL_WIDTH * scale,
-    });
-    doc.restore();
-  } catch {
-    doc
-      .fontSize(16)
-      .fillColor(INK)
-      .font("Helvetica-Bold")
-      .text("Medi", x, y, { continued: true })
-      .fillColor(BRAND_PINK)
-      .text("Scan", { continued: true })
-      .fillColor(INK)
-      .text("QR");
-  }
-  return height;
+  doc.save();
+  doc.strokeColor(INK).lineWidth(stroke).lineCap("round").lineJoin("round");
+  // Four QR-viewfinder corner brackets.
+  doc.moveTo(x + stroke / 2, y + bracket).lineTo(x + stroke / 2, y + stroke / 2).lineTo(x + bracket, y + stroke / 2).stroke();
+  doc.moveTo(x + iconSize - bracket, y + stroke / 2).lineTo(x + iconSize - stroke / 2, y + stroke / 2).lineTo(x + iconSize - stroke / 2, y + bracket).stroke();
+  doc.moveTo(x + iconSize - stroke / 2, y + iconSize - bracket).lineTo(x + iconSize - stroke / 2, y + iconSize - stroke / 2).lineTo(x + iconSize - bracket, y + iconSize - stroke / 2).stroke();
+  doc.moveTo(x + bracket, y + iconSize - stroke / 2).lineTo(x + stroke / 2, y + iconSize - stroke / 2).lineTo(x + stroke / 2, y + iconSize - bracket).stroke();
+  doc.restore();
+
+  // Pink disc with a white "M".
+  doc.save();
+  doc.circle(cx, cy, r).fillColor(BRAND_PINK).fill();
+  doc.restore();
+  doc
+    .fillColor("#FFFFFF")
+    .font("Helvetica-Bold")
+    .fontSize(r * 1.3)
+    .text("M", x, cy - r * 0.62, { width: iconSize, align: "center" });
+
+  // Wordmark: Medi (ink) Scan (pink) QR (ink).
+  const textX = x + iconSize + iconSize * 0.35;
+  const textY = y + iconSize * 0.18;
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(iconSize * 0.62)
+    .fillColor(INK)
+    .text("Medi", textX, textY, { continued: true })
+    .fillColor(BRAND_PINK)
+    .text("Scan", { continued: true })
+    .fillColor(INK)
+    .text("QR");
+
+  return iconSize;
 };
 
 const formatDate = (date) =>
@@ -101,7 +106,7 @@ const createPrescriptionPDF = (prescription) => {
       const left = doc.page.margins.left;
 
       // ---- Header ----
-      const logoHeight = drawLogo(doc, left, 36, 130);
+      const logoHeight = drawLogo(doc, left, 36, 26);
       doc
         .fontSize(9)
         .font("Helvetica")

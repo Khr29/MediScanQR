@@ -17,7 +17,10 @@ import {
   ArrowRight,
   Activity,
   ShieldAlert,
+  History,
 } from 'lucide-react';
+import Button from '../../components/common/Button';
+import Avatar from '../../components/common/Avatar';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -45,9 +48,14 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <h1 className="page-heading">Admin Command Center</h1>
-        <p className="page-subheading">System-wide statistics, verification queues, and audit activity</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="page-heading">Admin Command Center</h1>
+          <p className="page-subheading">System-wide statistics, verification queues, and audit activity</p>
+        </div>
+        <Button as={Link} to="/admin/audit-logs" icon={History} bracket>
+          View Audit Log
+        </Button>
       </div>
 
       {error ? (
@@ -55,7 +63,7 @@ const AdminDashboard = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatCard icon={Users} label="Total Users" value={stats?.totalUsers} tone="indigo" loading={loading} />
+            <StatCard icon={Users} label="Total Users" value={stats?.totalUsers} tone="indigo" loading={loading} hero />
             <StatCard icon={Stethoscope} label="Total Doctors" value={stats?.totalDoctors} tone="sky" loading={loading} />
             <StatCard icon={UserRound} label="Total Patients" value={stats?.totalPatients} tone="emerald" loading={loading} />
             <StatCard icon={Building2} label="Total Pharmacies" value={stats?.totalPharmacies} tone="amber" loading={loading} />
@@ -137,7 +145,12 @@ const AdminDashboard = () => {
               {stats?.recentLogs?.map((log) => (
                 <tr key={log._id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 text-xs font-mono text-slate-500">{formatDateTime(log.createdAt)}</td>
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-800">{log.user || 'System'}</td>
+                  <td className="px-6 py-4 text-xs font-semibold text-slate-800">
+                    <span className="flex items-center gap-2">
+                      <Avatar name={log.user || 'System'} size="sm" />
+                      {log.user || 'System'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{log.role}</td>
                   <td className="px-6 py-4 text-xs text-slate-700">{log.action}</td>
                   <td className="px-6 py-4 text-xs text-slate-500">{log.target || '—'}</td>

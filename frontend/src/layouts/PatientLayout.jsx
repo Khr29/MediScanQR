@@ -47,16 +47,16 @@ const PatientLayout = ({ children }) => {
         )}
 
         <aside
-          className={`fixed left-0 top-16 bottom-0 z-50 w-60 overflow-y-auto border-r border-ink-100 bg-white p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
+          className={`fixed left-0 top-16 bottom-0 z-50 w-60 overflow-y-auto bg-ink-900 p-4 transition-transform duration-200 ease-in-out lg:static lg:top-auto lg:bottom-auto lg:z-0 lg:shrink-0 lg:min-h-[calc(100vh-4rem)] lg:translate-x-0 ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <nav className="space-y-1.5" onClick={closeOnLinkClick}>
-            <NavItem to="/patient/dashboard" icon={LayoutDashboard} label="Dashboard" tone="brand" />
-            <NavItem to="/patient/prescriptions" icon={FileText} label="My Prescriptions" tone="brand" />
-            <NavItem to="/patient/history" icon={Pill} label="Medicine History" tone="brand" />
-            <NavItem to="/patient/notifications" icon={Bell} label="Notifications" tone="brand" />
-            <NavItem to="/patient/profile" icon={UserCircle} label="My Profile" tone="brand" />
+            <NavItem to="/patient/dashboard" icon={LayoutDashboard} label="Dashboard" tone="brand" dark />
+            <NavItem to="/patient/prescriptions" icon={FileText} label="My Prescriptions" tone="brand" dark />
+            <NavItem to="/patient/history" icon={Pill} label="Medicine History" tone="brand" dark />
+            <NavItem to="/patient/notifications" icon={Bell} label="Notifications" tone="brand" dark />
+            <NavItem to="/patient/profile" icon={UserCircle} label="My Profile" tone="brand" dark />
           </nav>
         </aside>
 
