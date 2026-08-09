@@ -71,6 +71,30 @@
       linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
     background-position: top right, top right, bottom left, bottom left;
   }
+
+  /* Very subtle page-content entrance — fade + a few px of upward motion.
+     Applied by keying the <main> element on route path so it remounts per
+     navigation. Kept short/gentle per the app's "no flashy motion" rule. */
+  .animate-page-enter {
+    animation: page-enter 220ms ease-out;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-enter {
+    animation: none;
+  }
 }
 
 /* Custom scrollbars for tables and drawers */

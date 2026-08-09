@@ -3,7 +3,9 @@ import EmptyState from './EmptyState';
 
 const SKELETON_ROWS = 5;
 
-const Table = ({ headers = [], children, emptyMessage = 'No records found.', loading = false }) => {
+// `emptyDescription` is additive and optional: existing callers that only
+// pass `emptyMessage` keep their exact prior single-line empty state.
+const Table = ({ headers = [], children, emptyMessage = 'No records found.', emptyDescription = '', loading = false }) => {
   const isEmpty = !loading && React.Children.count(children) === 0;
 
   return (
@@ -32,7 +34,7 @@ const Table = ({ headers = [], children, emptyMessage = 'No records found.', loa
           ) : isEmpty ? (
             <tr>
               <td colSpan={headers.length || 1} className="p-0">
-                <EmptyState title={emptyMessage} />
+                <EmptyState title={emptyMessage} message={emptyDescription} />
               </td>
             </tr>
           ) : (

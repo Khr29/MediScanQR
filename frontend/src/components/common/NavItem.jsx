@@ -24,7 +24,9 @@ const DARK_ICON_TONES = {
 
 // Single sidebar nav row, reused by every role layout. Each layout still owns
 // its own nav tree/grouping/labels — only this leaf row's markup is shared.
-const NavItem = ({ to, icon: Icon, label, tone = 'brand', dark = false, indent = false }) => {
+// `collapsed` is additive and defaults to false: existing callers (Doctor/
+// Pharmacy/Admin layouts) never pass it, so their rendering is unchanged.
+const NavItem = ({ to, icon: Icon, label, tone = 'brand', dark = false, indent = false, collapsed = false }) => {
   const location = useLocation();
   const active = location.pathname === to;
 
@@ -40,12 +42,22 @@ const NavItem = ({ to, icon: Icon, label, tone = 'brand', dark = false, indent =
   return (
     <Link
       to={to}
-      className={`flex items-center gap-3 rounded-lg border-r-4 px-3 py-2.5 text-sm font-medium transition-colors ${
-        indent ? 'pl-9' : ''
+      title={collapsed ? label : undefined}
+      aria-label={collapsed ? label : undefined}
+      className={`group relative flex items-center gap-3 rounded-lg border-r-4 py-2.5 text-sm font-medium transition-colors ${
+        collapsed ? 'justify-center px-2' : indent ? 'pl-9 px-3' : 'px-3'
       } ${active ? toneClasses + ' font-semibold' : inactiveClasses}`}
     >
       {Icon && <Icon className={`h-4 w-4 shrink-0 ${active ? iconToneClasses : dark ? 'text-slate-500' : 'text-slate-400'}`} />}
-      {label}
+      {!collapsed && label}
+      {collapsed && (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-ink-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          {label}
+        </span>
+      )}
     </Link>
   );
 };

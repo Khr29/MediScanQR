@@ -137,6 +137,10 @@ exports.getPatientProfile = async (req, res) => {
       user: req.user._id,
     }).populate("user", "name email");
 
+    if (!profile) {
+      return res.status(404).json({ message: "Patient profile not found." });
+    }
+
     return res.status(200).json(profile);
   } catch (error) {
     return res.status(500).json({

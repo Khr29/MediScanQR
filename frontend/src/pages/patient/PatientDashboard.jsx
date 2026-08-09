@@ -3,16 +3,27 @@ import { Link } from 'react-router-dom';
 import { FileText, Clock, CheckCircle2, QrCode, Activity, ArrowRight } from 'lucide-react';
 import PatientLayout from '../../layouts/PatientLayout';
 import Table from '../../components/common/Table';
-import Badge from '../../components/common/Badge';
+import StatusBadge from '../../components/common/StatusBadge';
 import StatCard from '../../components/common/StatCard';
 import ErrorState from '../../components/common/ErrorState';
 import Button from '../../components/common/Button';
 import Avatar from '../../components/common/Avatar';
 import QRModal from '../../components/patient/QRModal';
 import { getPatientDashboardStats } from '../../services/patientService';
-import { getStatusVariant, formatDate } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
+
+// Real wall-clock greeting — no invented data, just framing around the
+// authenticated user's actual name from AuthContext.
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
 
 const PatientDashboard = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,8 +50,10 @@ const PatientDashboard = () => {
     <PatientLayout>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="page-heading">Welcome back</h1>
-          <p className="page-subheading">Here's an overview of your active digital prescriptions</p>
+          <h1 className="page-heading">
+            {getGreeting()}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+          </h1>
+          <p className="page-subheading">Here's an overview of your prescriptions and health information</p>
         </div>
         <Button as={Link} to="/patient/prescriptions" icon={FileText} bracket>
           View My Prescriptions
@@ -69,7 +82,8 @@ const PatientDashboard = () => {
 
             <Table
               headers={['Rx ID', 'Doctor', 'Medicines', 'Status', 'Issued Date', 'QR Pass']}
-              emptyMessage="No prescriptions yet."
+              emptyMessage="No prescriptions yet"
+              emptyDescription="Your digital prescriptions will appear here when a doctor issues one."
               loading={loading}
             >
               {stats?.recentPrescriptions?.map((rx) => (
@@ -83,7 +97,7 @@ const PatientDashboard = () => {
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{rx.medicines?.length || 0} Meds</td>
                   <td className="px-6 py-4 text-xs">
-                    <Badge variant={getStatusVariant(rx.status)}>{rx.status}</Badge>
+                    <StatusBadge status={rx.status} />
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-500">{formatDate(rx.createdAt)}</td>
                   <td className="px-6 py-4 text-xs">

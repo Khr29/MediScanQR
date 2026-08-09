@@ -1,34 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import PatientLayout from '../../layouts/PatientLayout';
-import Loader from '../../components/common/Loader';
+import ErrorState from '../../components/common/ErrorState';
+import { SkeletonBar } from '../../components/common/Skeleton';
 import { User, Mail, Heart, Save, Cake } from 'lucide-react';
 import { getPatientProfile, updatePatientProfile } from '../../services/patientService';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
+const ProfileSkeleton = () => (
+  <div className="card p-6 space-y-4 max-w-xl">
+    {[0, 1, 2].map((i) => (
+      <div key={i}>
+        <SkeletonBar className="h-3 w-24 mb-2" />
+        <SkeletonBar className="h-11 w-full rounded-lg" />
+      </div>
+    ))}
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <SkeletonBar className="h-3 w-16 mb-2" />
+        <SkeletonBar className="h-11 w-full rounded-lg" />
+      </div>
+      <div>
+        <SkeletonBar className="h-3 w-24 mb-2" />
+        <SkeletonBar className="h-11 w-full rounded-lg" />
+      </div>
+    </div>
+    <SkeletonBar className="h-10 w-44 rounded-xl mt-2" />
+  </div>
+);
+
 const PatientProfile = () => {
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', age: '', bloodGroup: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPatientProfile();
+      setProfile({
+        name: data.user?.name || '',
+        email: data.user?.email || '',
+        phone: data.emergencyContact || '',
+        bloodGroup: data.bloodGroup || '',
+        age: data.age ?? '',
+      });
+    } catch (err) {
+      // Trace: a 404 here means the authenticated patient has no
+      // PatientProfile document — a real data-integrity problem, not
+      // something to hide behind a generic toast. Surface it with a retry.
+      setError(err.response?.data?.message || 'Failed to load your profile.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await getPatientProfile();
-        setProfile({
-          name: data.user?.name || '',
-          email: data.user?.email || '',
-          phone: data.emergencyContact || '',
-          bloodGroup: data.bloodGroup || '',
-          age: data.age ?? '',
-        });
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to load profile.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, []);
 
@@ -37,9 +67,9 @@ const PatientProfile = () => {
     setSaving(true);
     try {
       await updatePatientProfile({ ...profile, age: profile.age === '' ? undefined : Number(profile.age) });
-      toast.success('Profile updated successfully.');
+      toast.success('Profile saved successfully.');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update profile.');
+      toast.error(err.response?.data?.message || 'Unable to save profile.');
     } finally {
       setSaving(false);
     }
@@ -51,7 +81,15 @@ const PatientProfile = () => {
       <p className="page-subheading mb-6">Manage your medical profile and contact information</p>
 
       {loading ? (
-        <Loader text="Loading profile details..." />
+        <ProfileSkeleton />
+      ) : error ? (
+        <div className="max-w-xl">
+          <ErrorState
+            title="Unable to load your profile"
+            message={error}
+            onRetry={fetchProfile}
+          />
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="card p-6 space-y-4 max-w-xl">
           <div>
@@ -63,7 +101,7 @@ const PatientProfile = () => {
                 required
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -121,7 +159,7 @@ const PatientProfile = () => {
                   max="120"
                   value={profile.age}
                   onChange={(e) => setProfile({ ...profile, age: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -133,7 +171,7 @@ const PatientProfile = () => {
                 <select
                   value={profile.bloodGroup}
                   onChange={(e) => setProfile({ ...profile, bloodGroup: e.target.value })}
-                  className="w-full h-11 rounded-lg border border-slate-300 pl-9 pr-3 text-sm focus:border-emerald-500 focus:outline-none"
+                  className="w-full h-11 rounded-lg border border-slate-300 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 >
                   <option value="">Select Blood Group</option>
                   <option value="A+">A+</option>
@@ -152,7 +190,7 @@ const PatientProfile = () => {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm mt-2"
+            className="flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition-colors shadow-sm mt-2"
           >
             <Save className="h-4 w-4" /> {saving ? 'Saving Profile...' : 'Save Profile Changes'}
           </button>
